@@ -26,6 +26,8 @@ header {
       border: 1px solid #ccc;
       text-align: left;
       border-radius: 4px;
+      align-self: center; /* Input'u da ortala */
+      margin-bottom: 10px; /* Button ile arası */
       
 }
 .accept-button {
@@ -43,6 +45,6 @@ header {
 .accept-button:hover {
     background-color: #5a5f7d;
 }
-.accept-button.accept-button:click {
+.accept-button:active {
     background-color: #7d8398;
 }
