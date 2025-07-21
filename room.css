@@ -25,7 +25,8 @@ h1 {
     
 }
 .chat-panel{
-
+    display: block;
+    border: 5px solid;
 }
 
 main {
