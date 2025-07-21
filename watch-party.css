@@ -5,73 +5,8 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
   
-  .container {
-    display: flex;
-    height: 100vh;
-  }
-  
-  .sidebar-left, .sidebar-right {
-    background: #23272a;
-    color: #b9bbbe;
-    width: 220px;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid #18191c;
-  }
-  
-  .sidebar-right {
-    border-right: none;
-    border-left: 1px solid #18191c;
-  }
-  
-  .logo {
-    font-size: 2.0em;
-    font-weight: bold;
-    padding: 1px;
-    border-bottom: 1px solid #5e5e5e;
+header {
     text-align: center;
-  }
-  
-  .section-title {
-    margin: 20px 0 10px 20px;
-    font-size: 0.9em;
-    color: #72767d;
-    letter-spacing: 1px;
-    
-  }
-  
-  .sidebar-left a {
-    color: #b9bbbe;
-    text-decoration: none;
-    padding: 10px 20px;
-    display: block;
-    border-radius: 4px;
-    margin: 2px 0;
-  }
-  
-  .sidebar-left a:hover, .sidebar-left a.active {
-    background: #36393f;
-    color: #fff;
-  }
-  
-  .main-content {
-    flex: 1;
-    background: #36393f;
-    padding: 30px;
-    overflow-y: auto;
-  }
-  
-  h3 {
-    color: #fff;
-    margin-top: 0;
-  }
-  
-  .messages {
-    margin-top: 20px;
-  }
-  
-  .member {
-    padding: 10px 20px;
-    border-bottom: 1px solid #23272a;
-  }
+    font-size: larger;
+    text-shadow: #161617;
+}
