@@ -1,7 +1,7 @@
 body {
     margin: 0;
     background: #2c2f33;
-    color: #ccc;
+    color: #ffffffbb;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
   
@@ -9,16 +9,24 @@ header {
     text-align: center;
     font-size: larger;
     text-shadow: #161617;
+    margin-top: 40px;
+}
+h1 {
+    font-size: 2em;
+    margin: 20px 0;
+    color: #ffffff;
 }
 .link-url-input {
     display: flex;
     justify-content: center;
     align-content: center;
+    align-items: center;
     margin-top: 20px;
     margin-bottom: 20px;
     flex-direction: column;
     flex-wrap: wrap;
 }
+
 #videoUrl {
       width: 50%;
       height: 35px;
@@ -27,12 +35,13 @@ header {
       text-align: left;
       border-radius: 4px;
       align-self: center; /* Input'u da ortala */
-      margin-bottom: 10px; /* Button ile arası */
+      margin: 20px;
       
 }
+
 .accept-button {
     width: 10%;
-    height: 35px;
+    height: 45px;
     background-color: #7d8398;
     color: white;
     border: none;
@@ -42,9 +51,33 @@ header {
     align-self: center;
     border-radius: 5px;
 }
+
 .accept-button:hover {
     background-color: #5a5f7d;
 }
+
 .accept-button:active {
     background-color: #7d8398;
+}
+
+.room-id-input {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+#roomId {
+      width: 15%;
+      height: 35px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+      border-radius: 4px;
+      align-self: center; /* Input'u da ortala */
+      margin: 20px;
 }
