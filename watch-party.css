@@ -10,3 +10,39 @@ header {
     font-size: larger;
     text-shadow: #161617;
 }
+.link-url-input {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+#videoUrl {
+      width: 50%;
+      height: 35px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+      border-radius: 4px;
+      
+}
+.accept-button {
+    width: 10%;
+    height: 35px;
+    background-color: #7d8398;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 20px;
+    align-self: center;
+    border-radius: 5px;
+}
+.accept-button:hover {
+    background-color: #5a5f7d;
+}
+.accept-button.accept-button:click {
+    background-color: #7d8398;
+}
