@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <link rel="icon" type="image/x-icon" href="favicon.webp">
     <link rel="stylesheet" href="room.css">
     <meta charset="UTF-8">
@@ -10,23 +11,27 @@
 <body>
     
     <header>
+        <div class="header-content">
         <h1>Room ID: 123456  Have Fun!</h1>
+        <h2>Chat</h2>
+        </div>
     </header>
     <main>
     <div class="video-container">
         <iframe width="1080" height="650" src="https://www.youtube.com/embed/_ZJn1usy3EA?si=IbL7ubRgO-uSeMgy" title="YouTube video player" frameborder="100" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
     </div>
     <div class="chat-panel">
-        <h2>Chat</h2>
         <div class="chat-messages">
             <div class="message">User1: Hello everyone!</div>
             <div class="message">User2: Hi! Ready to watch?</div>
             <div class="message">User3: Let's go!</div>
         </div>
-        <input type="text" placeholder="Type your message here..." />
+        <div class="chat-input-container">
+        <input type="text" placeholder="Type your message here..." class="chat-input"/>
         <button class="send-button">Send</button>
+        </div>
     </div>
     </main>
-    
+    <script src="room.js"></script>
 </body>
 </html>
