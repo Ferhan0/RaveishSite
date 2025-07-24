@@ -29,9 +29,14 @@ function renderMessages() {
 // Add message (setState gibi)
 function addMessage() {
     const newMessage = messageInput.value;
+    const now = new Date();
+    const time = now.toLocaleTimeString("tr-TR", {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
     if (newMessage.trim()) {
         const userNickname = localStorage.getItem('userNickname') || 'Anonymous';
-        messages.push(`${userNickname}: ${newMessage}`);
+        messages.push(`[${time}]: ${userNickname}: ${newMessage}`);
         messageInput.value = '';
         renderMessages();
     }
