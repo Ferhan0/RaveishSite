@@ -12,7 +12,7 @@ let messages = [
 
 // DOM elements (useRef gibi)
 const chatMessages = document.querySelector('.chat-messages');
-const messageInput = document.querySelector('input[type="text"]');
+const messageInput = document.querySelector('textarea');
 const sendButton = document.querySelector('.send-button');
 
 // Render messages (useEffect gibi)
@@ -36,6 +36,14 @@ function addMessage() {
         renderMessages();
     }
 }
+
+messageInput.addEventListener("keydown", function(e){
+    if(e.key === "Enter" && !e.shiftKey){ 
+        e.preventDefault(); // ✅ Yeni satır eklemeyi engelle
+        addMessage();       // ✅ Mesaj gönder
+    }
+    // Shift+Enter → Hiçbir şey yapma, textarea kendi halleder!
+});
 
 // Event listeners (onClick gibi)
 sendButton.addEventListener('click', addMessage);

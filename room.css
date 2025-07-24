@@ -65,9 +65,16 @@ h2 {
     background-color: #36393f;
     border-radius: 5px;
 }
+.message {
+    white-space: pre-wrap; /* \n karakterlerini görüntüle */
+}
 
 .chat-input {
+    resize: none;
     align-self: center;
+    min-height: 40px;
+    max-height: 120px;
+    overflow-y: auto;
     width: 350px;
     padding: 10px;
     border: none;
