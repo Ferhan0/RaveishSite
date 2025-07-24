@@ -30,7 +30,8 @@ function renderMessages() {
 function addMessage() {
     const newMessage = messageInput.value;
     if (newMessage.trim()) {
-        messages.push(`You: ${newMessage}`);
+        const userNickname = localStorage.getItem('userNickname') || 'Anonymous';
+        messages.push(`${userNickname}: ${newMessage}`);
         messageInput.value = '';
         renderMessages();
     }
@@ -41,3 +42,25 @@ sendButton.addEventListener('click', addMessage);
 
 // İlk render (component mount gibi)
 renderMessages();
+
+// URL'den video ID çıkar
+function getYouTubeVideoId(url) {
+    const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+}
+
+// Video player'ı güncelle
+function updateVideoPlayer() {
+    const videoUrl = localStorage.getItem('videoUrl');
+    if (videoUrl) {
+        const videoId = getYouTubeVideoId(videoUrl);
+        if (videoId) {
+            const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            document.querySelector('iframe').src = embedUrl;
+        }
+    }
+}
+
+// Sayfa yüklendiğinde video'yu güncelle
+updateVideoPlayer();
