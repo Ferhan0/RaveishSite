@@ -34,11 +34,11 @@ h1 {
     align-items: center;
     margin-top: 20px;
     margin-bottom: 20px;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: wrap;
 }
 #nickname {
-      width: 15%;
+      width: 22.5%;
       height: 35px;
       padding: 10px;
       border: 1px solid #ccc;
@@ -62,7 +62,7 @@ h1 {
 
 .accept-button {
     width: 10%;
-    height: 45px;
+    height: 55px;
     background-color: #7d8398;
     color: white;
     border: none;

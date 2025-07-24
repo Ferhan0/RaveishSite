@@ -1,8 +1,13 @@
+// LocalStorage'dan veriyi oku
+const userNickname = localStorage.getItem('userNickname');
+const videoUrl = localStorage.getItem('videoUrl');
+
+console.log('User:', userNickname);
+console.log('Video:', videoUrl);
+
 // Messages state (useState gibi)
 let messages = [
-    'User1: Hello everyone!',
-    'User2: Hi! Ready to watch?', 
-    'User3: Let\'s go!'
+    
 ];
 
 // DOM elements (useRef gibi)
