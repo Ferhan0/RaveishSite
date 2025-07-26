@@ -40,6 +40,7 @@ function addMessage() {
         messageInput.value = '';
         renderMessages();
     }
+    chatMessages.scrollTop = chatMessages.scrollHeight - chatMessages.clientHeight;
 }
 
 messageInput.addEventListener("keydown", function(e){
@@ -49,6 +50,7 @@ messageInput.addEventListener("keydown", function(e){
     }
     // Shift+Enter → Hiçbir şey yapma, textarea kendi halleder!
 });
+
 
 // Event listeners (onClick gibi)
 sendButton.addEventListener('click', addMessage);
