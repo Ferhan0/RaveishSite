@@ -68,6 +68,10 @@ h2 {
  
 .message {
     white-space: pre-wrap; /* \n karakterlerini görüntüle */
+    word-wrap: break-word;      /* Uzun kelimeleri böl */
+    overflow-wrap: break-word;  /* Modern browsers */
+    max-width: 100%;
+               /* Container'ı aşmasın */
 }
 
 .chat-input {
