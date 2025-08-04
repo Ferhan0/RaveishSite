@@ -96,7 +96,7 @@ h1 {
     border-radius: 5px;
     background-color: #2c2f33;
     color: #ffffff;
-    margin: 0 5px 10px 5px;
+    margin: 0 10px 10px 5px;
 }
 .chat-input-container {
     display: flex;
@@ -109,7 +109,7 @@ h1 {
 main {
    
     height: calc(100vh - 150px);  /* ← Bu satırı ekle */
-    gap: 10px;  /* Aralarında boşluk */
+    gap: 15px;  /* Aralarında boşluk */
     display: flex;
     flex-direction: row;
     justify-content: space-around;

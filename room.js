@@ -1,3 +1,40 @@
+// YouTube Player instance
+let player;
+
+// API ready callback (otomatik çağrılır)
+function onYouTubeIframeAPIReady() {
+    const videoUrl = localStorage.getItem('videoUrl');
+    if (videoUrl) {
+        const videoId = getYouTubeVideoId(videoUrl);
+        if (videoId) {
+            player = new YT.Player('youtube-player', {
+                height: '400',
+                width: '100%',
+                videoId: videoId,
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+    }
+}
+
+// Player hazır olduğunda
+function onPlayerReady(event) {
+    console.log('Player ready!');
+}
+
+// Player state değiştiğinde (play, pause, etc.)
+function onPlayerStateChange(event) {
+    console.log('State changed:', event.data);
+    // YT.PlayerState.PLAYING = 1
+    // YT.PlayerState.PAUSED = 2
+    // YT.PlayerState.ENDED = 0
+}
+
+
+
 // LocalStorage'dan veriyi oku
 const userNickname = localStorage.getItem('userNickname');
 const videoUrl = localStorage.getItem('videoUrl');
@@ -65,17 +102,4 @@ function getYouTubeVideoId(url) {
     return match ? match[1] : null;
 }
 
-// Video player'ı güncelle
-function updateVideoPlayer() {
-    const videoUrl = localStorage.getItem('videoUrl');
-    if (videoUrl) {
-        const videoId = getYouTubeVideoId(videoUrl);
-        if (videoId) {
-            const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-            document.querySelector('iframe').src = embedUrl;
-        }
-    }
-}
 
-// Sayfa yüklendiğinde video'yu güncelle
-updateVideoPlayer();
