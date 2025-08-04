@@ -64,6 +64,7 @@ function renderMessages() {
 }
 
 // Add message (setState gibi)
+// addMessage() function'ında güncelleme
 function addMessage() {
     const newMessage = messageInput.value;
     const now = new Date();
@@ -73,7 +74,12 @@ function addMessage() {
     });
     if (newMessage.trim()) {
         const userNickname = localStorage.getItem('userNickname') || 'Anonymous';
-        messages.push(`[${time}]: ${userNickname}: ${newMessage}`);
+        
+        // 🎯 YENİ: Owner check
+        const isOwner = isCurrentUserOwner();
+        const crown = isOwner ? ' 👑' : '';
+        
+        messages.push(`[${time}]:${crown}${userNickname}: ${newMessage}`);
         messageInput.value = '';
         renderMessages();
     }
@@ -122,7 +128,6 @@ function isCurrentUserOwner() {
     return roomOwners.includes(currentUser);
 }
 
-// Test için console log ekle
-console.log('Is current user owner?', isCurrentUserOwner());
+
 
 
