@@ -102,4 +102,27 @@ function getYouTubeVideoId(url) {
     return match ? match[1] : null;
 }
 
+function updateRoomDisplay() {
+    const roomId = localStorage.getItem('roomId');
+    if (roomId) {
+        // room.html'deki room ID display'ini güncelle
+        const roomHeader = document.querySelector('h1'); // veya doğru selector
+        if (roomHeader) {
+            roomHeader.textContent = `Room ID: ${roomId} Have Fun!`;
+        }
+    }
+}
+
+// Sayfa yüklendiğinde çağır
+updateRoomDisplay();
+
+function isCurrentUserOwner() {
+    const currentUser = localStorage.getItem('userNickname');
+    const roomOwners = JSON.parse(localStorage.getItem('room_owners') || '[]');
+    return roomOwners.includes(currentUser);
+}
+
+// Test için console log ekle
+console.log('Is current user owner?', isCurrentUserOwner());
+
 

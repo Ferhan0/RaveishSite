@@ -1,4 +1,4 @@
-// Create Room button
+// Create Room button güncellemesi
 document.getElementById('create_room_button').addEventListener('click', function() {
     const nickname = document.getElementById('nickname').value;
     const videoUrl = document.getElementById('videoUrl').value;
@@ -14,9 +14,17 @@ document.getElementById('create_room_button').addEventListener('click', function
         return;
     }
     
+    // 🎯 YENİ: Kısa room ID generate et
+    const roomId = Math.random().toString(36).substr(2, 8).toUpperCase();
+    
     // Save to localStorage
     localStorage.setItem('userNickname', nickname);
     localStorage.setItem('videoUrl', videoUrl);
+    localStorage.setItem('roomId', roomId); // 🎯 YENİ
+    
+    // 🎯 YENİ: Owner assignment
+    const roomOwners = [nickname];
+    localStorage.setItem('room_owners', JSON.stringify(roomOwners));
     
     // Go to room
     window.location.href = 'room.html';
