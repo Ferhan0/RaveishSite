@@ -21,16 +21,27 @@
 <div id="youtube-player"></div>
     </div>
     <div class="chat-panel">
-        <div class="chat-messages">
-            <div class="message">User1: Hello everyone!</div>
-            <div class="message">User2: Hi! Ready to watch?</div>
-            <div class="message">User3: Let's go!</div>
-        </div>
-        <div class="chat-input-container">
-        <textarea placeholder="Type your message here..." class="chat-input"></textarea>
-        <button class="send-button">Send</button>
+    <!-- YENİ: Users dropdown -->
+    <div class="users-dropdown">
+        <button class="users-toggle" id="users-toggle">👥 3 users online</button>
+        <div class="users-list hidden" id="users-list">
+            <div>👑 mahmut (owner)</div>
+            <div>ali</div>
+            <div>ayşe</div>
         </div>
     </div>
+    
+    <!-- Existing chat messages (static messages'ları kaldır, zaten JS ile render ediliyor) -->
+    <div class="chat-messages">
+        <!-- JS tarafından doldurulacak -->
+    </div>
+    
+    <!-- Existing input container -->
+    <div class="chat-input-container">
+        <textarea placeholder="Type your message here..." class="chat-input"></textarea>
+        <button class="send-button">Send</button>
+    </div>
+</div>
     </main>
     <script src="room.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>

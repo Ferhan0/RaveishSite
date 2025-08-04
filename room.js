@@ -121,6 +121,25 @@ function updateRoomDisplay() {
 
 // Sayfa yüklendiğinde çağır
 updateRoomDisplay();
+// Users dropdown toggle functionality
+function initUsersDropdown() {
+    const toggleButton = document.getElementById('users-toggle');
+    const usersList = document.getElementById('users-list');
+    
+    toggleButton.addEventListener('click', function() {
+        usersList.classList.toggle('hidden');
+    });
+    
+    // Dropdown dışına tıklandığında kapat
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.users-dropdown')) {
+            usersList.classList.add('hidden');
+        }
+    });
+}
+
+// Sayfa yüklendiğinde init et
+initUsersDropdown();
 
 function isCurrentUserOwner() {
     const currentUser = localStorage.getItem('userNickname');
