@@ -1,48 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
     <link rel="icon" type="image/x-icon" href="favicon.webp">
     <link rel="stylesheet" href="room.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watch It Together</title>
-</head> 
+</head>
+
 <body>
-    
     <header>
         <div class="header-content">
-        <h1>Room ID: 123456  Have Fun!</h1>
+            <h1></h1>
         </div>
     </header>
+    
     <main>
-    <div class="video-container">
-        <!-- Eski iframe yerine -->
-<div id="youtube-player"></div>
-    </div>
-    <div class="chat-panel">
-    <!-- YENİ: Users dropdown -->
-    <div class="users-dropdown">
-        <button class="users-toggle" id="users-toggle">👥 3 users online</button>
-        <div class="users-list hidden" id="users-list">
-            <div>👑 mahmut (owner)</div>
-            <div>ali</div>
-            <div>ayşe</div>
+        <div class="video-container">
+            <div id="youtube-player"></div>
         </div>
-    </div>
-    
-    <!-- Existing chat messages (static messages'ları kaldır, zaten JS ile render ediliyor) -->
-    <div class="chat-messages">
-        <!-- JS tarafından doldurulacak -->
-    </div>
-    
-    <!-- Existing input container -->
-    <div class="chat-input-container">
-        <textarea placeholder="Type your message here..." class="chat-input"></textarea>
-        <button class="send-button">Send</button>
-    </div>
-</div>
+        
+        <div class="chat-panel">
+            <div class="users-dropdown">
+                <button class="users-toggle" id="users-toggle"></button>
+                <div class="users-list hidden" id="users-list">
+                </div>
+            </div>
+
+            <div class="chat-messages">
+            </div>
+
+            <div class="chat-input-container">
+                <textarea placeholder="Type your message here..." class="chat-input"></textarea>
+                <button class="send-button">Send</button>
+            </div>
+        </div>
     </main>
+
+    <!-- Context menu BODY level'da, en dışta -->
+    <ol class="contextMenu hidden" id="contextMenu">
+        <li id="makeOwnerOption">Make Owner</li>
+    </ol>
+
     <script src="room.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 </body>

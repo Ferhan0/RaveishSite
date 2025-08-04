@@ -131,11 +131,18 @@ h1 {
     max-height: 200px;
     overflow-y: auto;
     z-index: 1000;
+    
+    /*  Smooth animation için */
+    opacity: 1;
+    transform: translateY(0);
     transition: all 0.3s ease;
 }
 
 .users-list.hidden {
-    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    
 }
 
 .users-list div {
@@ -155,8 +162,8 @@ h1 {
 
 main {
    
-    height: calc(100vh - 150px);  /* ← Bu satırı ekle */
-    gap: 15px;  /* Aralarında boşluk */
+    height: calc(100vh - 150px);  
+    gap: 15px;  
     display: flex;
     flex-direction: row;
     justify-content: space-around;
@@ -164,15 +171,41 @@ main {
     
 }
 
+.contextMenu {
+    position: absolute;
+    list-style: none;
+    margin: 0;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    border-radius: 6px;
+    min-width: 160px;
+    font-size: 1em;
+    color: #222;
+}
+.contextMenu li {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.contextMenu li:hover {
+    background: #f0f0f0;
+}
+.contextMenu.hidden {
+    display: none !important;
+}
+
 @media (max-width: 768px) {
     .header-content {
         gap: 20px;
-        justify-content: flex-start;  /* ← Değiştir, space-between'den */
+        justify-content: flex-start;  
         flex-direction: column;
         align-items: flex-start;
     }
     
-    /* h2 display: none; artık gerekli değil - global olarak none yaptık */
+    
     
     main { 
         flex-direction: column;
