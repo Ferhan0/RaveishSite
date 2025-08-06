@@ -9,8 +9,6 @@ let player;
 const userNickname = localStorage.getItem('userNickname');
 const videoUrl = localStorage.getItem('videoUrl');
 
-console.log('User:', userNickname);
-console.log('Video:', videoUrl);
 
 // Messages state (useState gibi)
 let messages = [];
@@ -81,6 +79,24 @@ function onPlayerStateChange(event) {
     // YT.PlayerState.PLAYING = 1
     // YT.PlayerState.PAUSED = 2
     // YT.PlayerState.ENDED = 0
+}
+
+function playVideo() {
+    // Sadece owner play edebilir
+    if (isCurrentUserOwner(userNickname)) {
+        if (player) {
+            player.playVideo();
+        }
+    }
+}
+
+function pauseVideo() {
+    // Sadece owner pause edebilir
+    if (isCurrentUserOwner(userNickname)) {
+        if (player) {
+            player.pauseVideo();
+        }
+    }
 }
 
 // ============================================

@@ -17,7 +17,13 @@
     
     <main>
         <div class="video-container">
-            <div id="youtube-player"></div>
+            <div id="youtube-player">
+
+            </div>
+            <div class="video-controls">
+                <button id="play-btn" onclick="playVideo()">Play</button>
+                <button id="pause-btn" onclick="pauseVideo()">Pause</button>
+            </div>
         </div>
         
         <div class="chat-panel">
@@ -37,7 +43,6 @@
         </div>
     </main>
 
-    <!-- Context menu BODY level'da, en dışta -->
     <ol class="contextMenu hidden" id="contextMenu">
         <li id="makeOwnerOption">Make Owner</li>
     </ol>
