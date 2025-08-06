@@ -81,23 +81,6 @@ function onPlayerStateChange(event) {
     // YT.PlayerState.ENDED = 0
 }
 
-function playVideo() {
-    // Sadece owner play edebilir
-    if (isCurrentUserOwner(userNickname)) {
-        if (player) {
-            player.playVideo();
-        }
-    }
-}
-
-function pauseVideo() {
-    // Sadece owner pause edebilir
-    if (isCurrentUserOwner(userNickname)) {
-        if (player) {
-            player.pauseVideo();
-        }
-    }
-}
 
 // ============================================
 // 4. CHAT FUNCTIONALITY
