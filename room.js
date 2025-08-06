@@ -4,6 +4,8 @@
 
 // YouTube Player instance
 let player;
+let lastTime = 0;
+let seekDetectionInterval;
 
 // LocalStorage'dan veriyi oku
 const userNickname = localStorage.getItem('userNickname');
@@ -51,6 +53,24 @@ function isUserOwner(username) {
 
 // API ready callback (otomatik çağrılır)
 function onYouTubeIframeAPIReady() {
+
+    let playerVars;
+
+        if (isCurrentUserOwner(userNickname)) {
+            // Kullanıcı owner ise kontrol yetkisi ver
+            playerVars = {
+            controls: 1,
+            disablekb: 0,
+            };
+        } else {
+            // Kullanıcı owner değilse kontrolü engelle
+            playerVars = {
+            controls: 0,
+            disablekb: 1,
+            };
+        }
+
+
     const videoUrl = localStorage.getItem('videoUrl');
     if (videoUrl) {
         const videoId = getYouTubeVideoId(videoUrl);
@@ -58,6 +78,7 @@ function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
                 height: '400',
                 width: '100%',
+                playerVars,
                 videoId: videoId,
                 events: {
                     'onReady': onPlayerReady,
@@ -70,15 +91,41 @@ function onYouTubeIframeAPIReady() {
 
 // Player hazır olduğunda
 function onPlayerReady(event) {
-    console.log('Player ready!');
+    console.log('Player is ready');
+    startSeekDetection();
 }
 
 // Player state değiştiğinde (play, pause, etc.)
-function onPlayerStateChange(event) {
+function onPlayerStateChange(event) {                    //CLAUDE yokken
     console.log('State changed:', event.data);
-    // YT.PlayerState.PLAYING = 1
-    // YT.PlayerState.PAUSED = 2
-    // YT.PlayerState.ENDED = 0
+    const isOwner = isCurrentUserOwner(userNickname);
+
+  if (!isOwner && event.data === YT.PlayerState.PAUSED) {
+    console.log("🔒 Pause engellendi");
+    player.playVideo();
+  }
+}
+
+function startSeekDetection() {
+    seekDetectionInterval = setInterval(() => {
+        const currentTime = player.getCurrentTime();
+        const diff = Math.abs(currentTime - lastTime);
+        
+        if (diff > 1.5) {
+            console.log("Manual seek detected! Yeni konum:", currentTime);
+            
+            
+            if (isCurrentUserOwner(userNickname)) {
+                syncVideoPosition(currentTime);
+            }
+        }
+        
+        lastTime = currentTime;
+    }, 500);
+}
+
+function syncVideoPosition(currentTime) {
+    console.log("Syncing video position to:", currentTime);
 }
 
 
@@ -168,6 +215,40 @@ function showContextMenu(event, username) {
     menu.setAttribute('data-username', username);
 }
 
+function makeOwner() {
+    const menu = document.getElementById('contextMenu');
+    const username = menu.getAttribute('data-username');
+    let owners = JSON.parse(localStorage.getItem('room_owners') || '[]');
+    if (username && !owners.includes(username)) {
+        owners.push(username);
+        localStorage.setItem('room_owners', JSON.stringify(owners));
+        updateUsersList();
+    }
+    else{
+        alert('This user is already an owner!');
+    }
+    menu.classList.add('hidden');
+}
+
+function removeOwner() {
+    const menu = document.getElementById('contextMenu');
+    const username = menu.getAttribute('data-username');
+    let owners = JSON.parse(localStorage.getItem('room_owners') || '[]');
+    
+    // Username'i owners array'inden çıkar
+    owners = owners.filter(owner => owner !== username);
+    
+    localStorage.setItem('room_owners', JSON.stringify(owners));
+    updateUsersList();
+    menu.classList.add('hidden');
+}
+
+function clearPreviousOwnership() {
+    // Önceki owner'ları temizle
+    localStorage.setItem('room_owners', '[]');
+}
+
+
 // Click outside to close menu
 document.addEventListener('click', function(event) {
     const menu = document.getElementById('contextMenu');
@@ -190,7 +271,17 @@ function initActiveUsers() {
     const currentUser = localStorage.getItem('userNickname');
     if (currentUser && !activeUsers.includes(currentUser)) {
         activeUsers.push(currentUser);
+        makeCurrentUserOwner();
         updateUsersList();
+    }
+}
+
+function makeCurrentUserOwner() {
+    const currentUser = localStorage.getItem('userNickname');
+    let owners = JSON.parse(localStorage.getItem('room_owners') || '[]');
+    if (!owners.includes(currentUser)) {
+        owners.push(currentUser);
+        localStorage.setItem('room_owners', JSON.stringify(owners));
     }
 }
 
@@ -244,6 +335,7 @@ sendButton.addEventListener('click', addMessage);
 // Sayfa yüklendiğinde çalışacak
 updateRoomDisplay();
 renderMessages();
+clearPreviousOwnership();
 initUsersDropdown();
 initActiveUsers();
 
