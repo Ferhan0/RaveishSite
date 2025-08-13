@@ -35,14 +35,8 @@ document.getElementById('join_room_button').addEventListener('click', function()
     const nickname = document.getElementById('nickname').value;
     const roomId = document.getElementById('roomId').value;
     
-    // Validation
-    if (!nickname.trim()) {
-        alert('Please enter your nickname!');
-        return;
-    }
-    
-    if (!roomId.trim()) {
-        alert('Please enter room ID!');
+    if (!nickname.trim() || !roomId.trim()) {
+        alert('Please enter nickname and room ID!');
         return;
     }
     
@@ -50,6 +44,8 @@ document.getElementById('join_room_button').addEventListener('click', function()
     localStorage.setItem('userNickname', nickname);
     localStorage.setItem('roomId', roomId);
     
-    // Go to room
-    window.location.href = 'room.html';
+    // VIDEO URL'Sİ OLMADAN GİT
+    // (Video URL'sini server'dan alacağız)
+    
+    window.location.href = '/room';
 });

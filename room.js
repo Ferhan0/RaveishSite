@@ -23,6 +23,64 @@ const chatMessages = document.querySelector('.chat-messages');
 const messageInput = document.querySelector('textarea');
 const sendButton = document.querySelector('.send-button');
 
+// Socket.io connection
+function initSocket() {
+    socket = io();
+    
+    socket.on('connect', () => {
+        console.log('🔌 Connected to server!');
+        
+        // Room'a katıl
+        const roomId = localStorage.getItem('roomId');
+        const nickname = localStorage.getItem('userNickname');
+        
+        if (roomId && nickname) {
+            socket.emit('join_room', { roomId, nickname });
+            
+            // CREATE yapanlar room data göndersin
+            const videoUrl = localStorage.getItem('videoUrl');
+            if (videoUrl) {
+                const roomData = {
+                    roomId: roomId,
+                    videoUrl: videoUrl,
+                    owner: nickname
+                };
+                socket.emit('set_room_data', roomData);
+                console.log('📤 Sent room data as creator');
+            }
+        }
+    });
+    
+    // JOIN yapanlar room data alsın
+    socket.on('room_data', (data) => {
+        console.log('📥 Received room data:', data);
+        localStorage.setItem('videoUrl', data.videoUrl);
+        localStorage.setItem('room_owners', JSON.stringify([data.owner]));
+        
+        // Video player'ı reload et
+        //location.reload();
+    });
+    
+    // Video sync listener
+    socket.on('video_seek', (data) => {
+    console.log("📺 Received sync:", data.position);
+    
+    if (!isCurrentUserOwner() && player && player.getPlayerState) {
+        const currentTime = player.getCurrentTime();
+        const diff = Math.abs(currentTime - data.position);
+        
+        if (diff > 2) {
+            console.log("🔄 Syncing video to:", data.position);
+            player.seekTo(data.position, true);
+            console.log("✅ Seek completed");
+        }
+    }
+});
+}
+
+// Socket'i başlat
+initSocket();
+
 // ============================================
 // 2. UTILITY FUNCTIONS
 // ============================================
@@ -53,22 +111,24 @@ function isUserOwner(username) {
 
 // API ready callback (otomatik çağrılır)
 function onYouTubeIframeAPIReady() {
-
     let playerVars;
 
-        if (isCurrentUserOwner(userNickname)) {
-            // Kullanıcı owner ise kontrol yetkisi ver
-            playerVars = {
+    if (isCurrentUserOwner(userNickname)) {
+        // Owner: Kontrol yetkisi var
+        playerVars = {
             controls: 1,
             disablekb: 0,
-            };
-        } else {
-            // Kullanıcı owner değilse kontrolü engelle
-            playerVars = {
+        };
+    } else {
+        // Non-owner: TAMAMİYLE DİSABLE
+        playerVars = {
             controls: 0,
             disablekb: 1,
-            };
-        }
+            fs: 0,           // Fullscreen disable
+            rel: 0,          // Related videos disable
+            modestbranding: 1, // YouTube logo küçült
+        };
+    }
 
 
     const videoUrl = localStorage.getItem('videoUrl');
@@ -93,17 +153,35 @@ function onYouTubeIframeAPIReady() {
 function onPlayerReady(event) {
     console.log('Player is ready');
     startSeekDetection();
+    if (!isCurrentUserOwner()) {
+        const videoContainer = document.querySelector('.video-container');
+        const overlay = document.createElement('div');
+        overlay.className = 'video-overlay';
+        overlay.title = 'Only owners can control the video';
+        videoContainer.appendChild(overlay);
+    }
 }
 
 // Player state değiştiğinde (play, pause, etc.)
-function onPlayerStateChange(event) {                    //CLAUDE yokken
-    console.log('State changed:', event.data);
-    const isOwner = isCurrentUserOwner(userNickname);
-
-  if (!isOwner && event.data === YT.PlayerState.PAUSED) {
-    console.log("🔒 Pause engellendi");
-    player.playVideo();
-  }
+function onPlayerStateChange(event) {
+    const isOwner = isCurrentUserOwner();
+    const roomId = localStorage.getItem('roomId');
+    
+    if (isOwner) {
+        if (event.data === YT.PlayerState.PLAYING) {
+            socket.emit('video_play', { room: roomId });
+        } else if (event.data === YT.PlayerState.PAUSED) {
+            socket.emit('video_pause', { room: roomId });
+        }
+    } else {
+        // Non-owner hiçbir kontrol yapamaz
+        if (event.data === YT.PlayerState.PAUSED) {
+            setTimeout(() => player.playVideo(), 100);
+        }
+        if (event.data === YT.PlayerState.PLAYING) {
+            // İzin verilen durum, hiçbir şey yapma
+        }
+    }
 }
 
 function startSeekDetection() {
@@ -125,7 +203,14 @@ function startSeekDetection() {
 }
 
 function syncVideoPosition(currentTime) {
-    console.log("Syncing video position to:", currentTime);
+    console.log("🎯 Owner syncing video position to:", currentTime);
+    
+    const roomId = localStorage.getItem('roomId');
+    socket.emit('video_seek', {
+        position: currentTime,
+        room: roomId,
+        timestamp: Date.now()
+    });
 }
 
 
@@ -271,7 +356,7 @@ function initActiveUsers() {
     const currentUser = localStorage.getItem('userNickname');
     if (currentUser && !activeUsers.includes(currentUser)) {
         activeUsers.push(currentUser);
-        makeCurrentUserOwner();
+        
         updateUsersList();
     }
 }
@@ -335,7 +420,7 @@ sendButton.addEventListener('click', addMessage);
 // Sayfa yüklendiğinde çalışacak
 updateRoomDisplay();
 renderMessages();
-clearPreviousOwnership();
+
 initUsersDropdown();
 initActiveUsers();
 
