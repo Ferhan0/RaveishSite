@@ -1,6 +1,7 @@
-# Node.js dependencies
-node_modules/
+# Node.js dependencies  
+server/node_modules/
 package-lock.json
+server/package-lock.json
 
 # VS Code settings
 .vscode/
