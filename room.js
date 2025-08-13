@@ -76,6 +76,20 @@ function initSocket() {
         }
     }
 });
+socket.on('video_play', () => {
+    console.timeEnd('play_delay'); // Delay'i ölç
+    console.log("▶️ Received play command");
+    if (!isCurrentUserOwner() && player) {
+        player.playVideo();
+    }
+});
+
+socket.on('video_pause', () => {
+    console.log("⏸️ Received pause command");
+    if (!isCurrentUserOwner() && player) {
+        player.pauseVideo();
+    }
+});
 }
 
 // Socket'i başlat
@@ -111,6 +125,17 @@ function isUserOwner(username) {
 
 // API ready callback (otomatik çağrılır)
 function onYouTubeIframeAPIReady() {
+
+    // Overlay'i player yaratılmadan önce ekle
+    if (!isCurrentUserOwner(userNickname)) {
+        const videoContainer = document.querySelector('.video-container');
+        const overlay = document.createElement('div');
+        overlay.className = 'video-overlay';
+        overlay.title = 'Only owners can control the video';
+        videoContainer.appendChild(overlay);
+        console.log('🛡️ Overlay added early');
+    }
+
     let playerVars;
 
     if (isCurrentUserOwner(userNickname)) {
@@ -164,34 +189,41 @@ function onPlayerReady(event) {
 
 // Player state değiştiğinde (play, pause, etc.)
 function onPlayerStateChange(event) {
+    console.log("🎬 Player state changed:", event.data);
+    
     const isOwner = isCurrentUserOwner();
     const roomId = localStorage.getItem('roomId');
     
+    console.log("🔑 Is owner:", isOwner);
+    
     if (isOwner) {
         if (event.data === YT.PlayerState.PLAYING) {
+            console.log("▶️ Owner: Sending play event");
             socket.emit('video_play', { room: roomId });
         } else if (event.data === YT.PlayerState.PAUSED) {
+            console.log("⏸️ Owner: Sending pause event");
             socket.emit('video_pause', { room: roomId });
         }
-    } else {
-        // Non-owner hiçbir kontrol yapamaz
-        if (event.data === YT.PlayerState.PAUSED) {
-            setTimeout(() => player.playVideo(), 100);
-        }
-        if (event.data === YT.PlayerState.PLAYING) {
-            // İzin verilen durum, hiçbir şey yapma
-        }
     }
+    // Non-owner için hiçbir şey yapma, sadece socket listener'lar çalışsın
 }
 
 function startSeekDetection() {
+    // Sadece owner seek detection yapsın
+    if (!isCurrentUserOwner()) {
+        console.log("🚫 Non-owner: Seek detection disabled");
+        return;
+    }
+    
     seekDetectionInterval = setInterval(() => {
+        if (!player || !player.getCurrentTime) return;
+        
         const currentTime = player.getCurrentTime();
         const diff = Math.abs(currentTime - lastTime);
         
-        if (diff > 1.5) {
+        // Threshold düşür: daha hızlı detection
+        if (diff > 0.3) {  // 1.5'ten 0.3'e
             console.log("Manual seek detected! Yeni konum:", currentTime);
-            
             
             if (isCurrentUserOwner(userNickname)) {
                 syncVideoPosition(currentTime);
@@ -199,7 +231,7 @@ function startSeekDetection() {
         }
         
         lastTime = currentTime;
-    }, 500);
+    }, 100); // 500ms'den 100ms'e - 5x daha hızlı
 }
 
 function syncVideoPosition(currentTime) {

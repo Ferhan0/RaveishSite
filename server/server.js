@@ -53,13 +53,13 @@ io.on('connection', (socket) => {
         socket.to(data.room).emit('video_seek', data);
     });
     
-    socket.on('video_play', (data) => {
-        socket.to(data.room).emit('video_play', data);
-    });
-    
-    socket.on('video_pause', (data) => {
-        socket.to(data.room).emit('video_pause', data);
-    });
+socket.on('video_play', (data) => {
+    socket.to(data.room).emit('video_play'); // data parametresini çıkar
+});
+
+socket.on('video_pause', (data) => {
+    socket.to(data.room).emit('video_pause'); // data parametresini çıkar
+});
     
     // Chat system
     socket.on('chat_message', (data) => {
