@@ -53,8 +53,10 @@ io.on('connection', (socket) => {
         socket.to(data.room).emit('video_seek', data);
     });
     
+
+
 socket.on('video_play', (data) => {
-    socket.to(data.room).emit('video_play'); // data parametresini çıkar
+    socket.to(data.room).emit('video_play', data); // timestamp'i pass et
 });
 
 socket.on('video_pause', (data) => {
@@ -62,9 +64,11 @@ socket.on('video_pause', (data) => {
 });
     
     // Chat system
-    socket.on('chat_message', (data) => {
-        io.to(data.room).emit('chat_message', data);
-    });
+socket.on('chat_message', (data) => {
+    console.log(`Chat from ${data.user}: ${data.message}`);
+    // Room'daki herkese gönder (gönderen dahil)
+    io.to(data.room).emit('chat_message', data);
+});
     
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);

@@ -57,8 +57,8 @@ function initSocket() {
         localStorage.setItem('videoUrl', data.videoUrl);
         localStorage.setItem('room_owners', JSON.stringify([data.owner]));
         
-        // Video player'ı reload et
-        //location.reload();
+       
+        
     });
     
     // Video sync listener
@@ -76,11 +76,21 @@ function initSocket() {
         }
     }
 });
-socket.on('video_play', () => {
-    console.timeEnd('play_delay'); // Delay'i ölç
-    console.log("▶️ Received play command");
+socket.on('video_play', (data) => {
+    const received = Date.now();
+    const sent = data?.timestamp || 0;
+    const delay = received - sent;
+    
+    console.log("▶️ Received play at:", received);
+    console.log("⏱️ Socket delay:", delay + "ms");
+    
     if (!isCurrentUserOwner() && player) {
+        console.log("🎬 Calling player.playVideo() at:", Date.now());
         player.playVideo();
+        
+        setTimeout(() => {
+            console.log("🎬 Player state after playVideo():", player.getPlayerState());
+        }, 100);
     }
 });
 
@@ -89,6 +99,12 @@ socket.on('video_pause', () => {
     if (!isCurrentUserOwner() && player) {
         player.pauseVideo();
     }
+});
+
+// Chat listener (video events altına ekle)
+socket.on('chat_message', (data) => {
+    console.log('📨 Received chat:', data);
+    displayMessage(data);
 });
 }
 
@@ -149,7 +165,7 @@ function onYouTubeIframeAPIReady() {
         playerVars = {
             controls: 0,
             disablekb: 1,
-            fs: 0,           // Fullscreen disable
+            fs: 1,           // Fullscreen disable
             rel: 0,          // Related videos disable
             modestbranding: 1, // YouTube logo küçült
         };
@@ -198,14 +214,15 @@ function onPlayerStateChange(event) {
     
     if (isOwner) {
         if (event.data === YT.PlayerState.PLAYING) {
-            console.log("▶️ Owner: Sending play event");
-            socket.emit('video_play', { room: roomId });
+            const timestamp = Date.now();  // ← BURAYA EKLE
+            console.log("▶️ Owner: Sending play event at:", timestamp);  // ← BURAYA EKLE
+            socket.emit('video_play', { room: roomId, timestamp: timestamp });  // ← BURAYI DEĞİŞTİR
         } else if (event.data === YT.PlayerState.PAUSED) {
             console.log("⏸️ Owner: Sending pause event");
             socket.emit('video_pause', { room: roomId });
         }
     }
-    // Non-owner için hiçbir şey yapma, sadece socket listener'lar çalışsın
+    
 }
 
 function startSeekDetection() {
@@ -269,17 +286,33 @@ function addMessage() {
         hour: '2-digit',
         minute: '2-digit'
     });
+    
     if (newMessage.trim()) {
         const userNickname = localStorage.getItem('userNickname') || 'Anonymous';
+        const roomId = localStorage.getItem('roomId');
         
         // Owner check
         const isOwner = isCurrentUserOwner();
         const crown = isOwner ? ' 👑' : '';
         
-        messages.push(`[${time}]:${crown}${userNickname}: ${newMessage}`);
+        // Socket ile gönder (localStorage'a kaydetme!)
+        const messageData = {
+            user: userNickname,
+            message: newMessage,
+            timestamp: time,
+            crown: crown,
+            room: roomId
+        };
+        
+        socket.emit('chat_message', messageData);
         messageInput.value = '';
-        renderMessages();
     }
+}
+
+function displayMessage(data) {
+    const messageText = `[${data.timestamp}]:${data.crown}${data.user}: ${data.message}`;
+    messages.push(messageText);
+    renderMessages();
     chatMessages.scrollTop = chatMessages.scrollHeight - chatMessages.clientHeight;
 }
 
