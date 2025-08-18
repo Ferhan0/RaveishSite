@@ -102,3 +102,52 @@ h1 {
       align-self: center; /* Input'u da ortala */
       margin: 20px;
 }
+
+/* Mobile Responsive - Landing Page */
+@media (max-width: 768px) {
+    header {
+        margin-top: 20px;
+    }
+    
+    h1 {
+        font-size: 1.5em;
+        margin: 10px 0;
+    }
+    
+    /* Input Fields - Mobile */
+    #nickname {
+        width: 80% !important;
+        max-width: 400px;
+        height: 50px;
+        font-size: 16px;
+    }
+    
+    #videoUrl {
+        width: 80% !important;
+        max-width: 500px;
+        height: 50px;
+        font-size: 16px;
+    }
+    
+    #roomId {
+        width: 80% !important;
+        max-width: 300px;
+        height: 50px;
+        font-size: 16px;
+    }
+    
+    /* Buttons - Mobile */
+    .accept-button {
+        width: 60% !important;
+        max-width: 250px;
+        height: 60px;
+        font-size: 18px;
+        font-weight: bold;
+        margin: 15px;
+    }
+    
+    /* Touch targets */
+    input, button {
+        min-height: 44px; /* iOS minimum touch target */
+    }
+}
