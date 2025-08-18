@@ -221,16 +221,46 @@ main {
         align-items: flex-start;
     }
     
-    
+    /* Header text mobile */
+    h1 {
+        font-size: 1.2em;
+        text-align: center;
+        width: 100%;
+    }
     
     main { 
         flex-direction: column;
         height: calc(100vh - 100px);
+        padding: 10px; /* + Padding ekle */
+        gap: 10px;     /* + Gap ekle */
+    }
+    
+    /* Video container mobile */
+    .video-container {
+        height: 35vh;     /* + Biraz küçült */
+        min-height: 200px; /* + Min height */
     }
     
     .chat-panel {
         flex: none;
         height: 40vh;
         max-width: 100%;
+        min-height: 250px; /* + Min height ekle */
+    }
+    
+    /* Touch-friendly controls */
+    .chat-input {
+        font-size: 16px;  /* + iOS zoom önleme */
+        min-height: 44px; /* + Touch target */
+    }
+    
+    .send-button {
+        min-height: 44px; /* + Touch target */
+        width: 80px;      /* + Daha kompakt */
+    }
+    
+    .users-toggle {
+        font-size: 1em;   /* + Daha okunabilir */
+        padding: 12px;    /* + Touch padding */
     }
 }
