@@ -44,8 +44,9 @@ document.getElementById('join_room_button').addEventListener('click', function()
     localStorage.setItem('userNickname', nickname);
     localStorage.setItem('roomId', roomId);
     
-    // VIDEO URL'Sİ OLMADAN GİT
-    // (Video URL'sini server'dan alacağız)
+    // JOIN yapanlar eski video URL'sini temizler
+    localStorage.removeItem('videoUrl');
+    localStorage.removeItem('room_owners');
     
     window.location.href = '/room';
 });
