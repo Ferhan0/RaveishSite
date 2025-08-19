@@ -168,6 +168,19 @@ function initSocket() {
         console.log(`${data.user} stopped typing`);
         hideTypingIndicator(data.user);
     });
+
+    // User join/leave listeners
+    socket.on('user_joined', (data) => {
+        console.log(`👋 ${data.user} joined`);
+        showUserJoined(data.user);
+    });
+
+    socket.on('user_left', (data) => {
+        console.log(`👋 ${data.user} left`);
+        showUserLeft(data.user);
+    });
+
+    
 }
 
 // Socket'i başlat
@@ -423,6 +436,57 @@ chatInput.addEventListener('input', function() {
     function hideTypingIndicator(username) {
         const typingIndicator = document.getElementById('typing-indicator');
         typingIndicator.classList.remove('show');
+    }
+
+    // Toast notification functions
+function showToast(message, type = 'success') {
+    const toastContainer = document.getElementById('toast-container');
+    
+    // Toast element oluştur
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Message
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+    toast.appendChild(messageSpan);
+    
+    // Progress bar
+    const progressBar = document.createElement('div');
+    progressBar.className = 'toast-progress';
+    toast.appendChild(progressBar);
+    
+    // Container'a ekle
+    toastContainer.appendChild(toast);
+    
+    // Show animation
+    setTimeout(() => {
+        toast.classList.add('show');
+        // Progress bar start
+        progressBar.style.width = '100%';
+    }, 100);
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        // Exit animation (sola kaydir)
+        toast.style.transform = 'translateX(100%)';
+        
+        // Remove from DOM
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
+
+    // User join/leave helpers
+    function showUserJoined(username) {
+        showToast(`${username} joined the room`, 'success');
+    }
+
+    function showUserLeft(username) {
+        showToast(`${username} left the room`, 'error');
     }
 
 // ============================================

@@ -27,6 +27,7 @@ io.on('connection', (socket) => {
     // console.log('User connected:', socket.id);
     
     // Room'a katılım - GÜNCELLE
+// Room'a katılım - GÜNCELLE
 socket.on('join_room', (data) => {
     const { roomId, nickname } = data;
     socket.join(roomId);
@@ -37,12 +38,21 @@ socket.on('join_room', (data) => {
     }
     
     // User'ı ekle (duplicate check)
-    if (!roomUsers[roomId].find(user => user.nickname === nickname)) {
+    const existingUser = roomUsers[roomId].find(user => user.nickname === nickname);
+    if (!existingUser) {
         roomUsers[roomId].push({
             nickname: nickname,
             socketId: socket.id,
             joinedAt: Date.now()
         });
+        
+        // YENİ: Join notification gönder (sadece diğer kullanıcılara)
+        socket.to(roomId).emit('user_joined', {
+            user: nickname,
+            room: roomId
+        });
+        
+        console.log(`${nickname} joined room: ${roomId}`);
     }
     
     // Tüm room'a user list gönder
@@ -51,11 +61,10 @@ socket.on('join_room', (data) => {
     // Room data varsa gönder
     if (roomData[roomId]) {
         socket.emit('room_data', roomData[roomId]);
-        // console.log(`Sent room data to ${nickname}`);
+        console.log(`Sent room data to ${nickname}`);
     }
     
-    // console.log(`${nickname} joined room: ${roomId}`);
-    // console.log('Room users:', roomUsers[roomId]);
+    console.log('Room users:', roomUsers[roomId]);
 });
     
     // Room data set (CREATE yapan gönderir)
@@ -134,9 +143,34 @@ socket.on('ownership_remove', (data) => {
 
 
     
-    socket.on('disconnect', () => {
-        // console.log('User disconnected:', socket.id);
-    });
+    // YENİ: Disconnect handling
+socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+    
+    // Tüm room'lardan bu socket'i bul ve sil
+    for (const roomId in roomUsers) {
+        const userIndex = roomUsers[roomId].findIndex(user => user.socketId === socket.id);
+        
+        if (userIndex !== -1) {
+            const leftUser = roomUsers[roomId][userIndex];
+            
+            // User'ı listeden sil
+            roomUsers[roomId].splice(userIndex, 1);
+            
+            // Leave notification gönder
+            socket.to(roomId).emit('user_left', {
+                user: leftUser.nickname,
+                room: roomId
+            });
+            
+            // Updated user list gönder
+            io.to(roomId).emit('users_update', roomUsers[roomId]);
+            
+            console.log(`${leftUser.nickname} left room: ${roomId}`);
+            break;
+        }
+    }
+});
 });
 
 const PORT = process.env.PORT || 3000;
