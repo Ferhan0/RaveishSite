@@ -87,6 +87,24 @@ socket.on('chat_message', (data) => {
     io.to(data.room).emit('chat_message', data);
 });
 
+socket.on('user_typing_start', (data) => {
+    console.log(`${data.user} started typing in room ${data.room}`);
+    // Sadece diğer kullanıcılara gönder (kendisi hariç)
+    socket.to(data.room).emit('user_typing_start', {
+        user: data.user,
+        room: data.room
+    });
+});
+
+socket.on('user_typing_stop', (data) => {
+    console.log(`${data.user} stopped typing in room ${data.room}`);
+    // Sadece diğer kullanıcılara gönder (kendisi hariç)
+    socket.to(data.room).emit('user_typing_stop', {
+        user: data.user,
+        room: data.room
+    });
+});
+
 // OWNERSHIP EVENTS EKLE:
 socket.on('ownership_change', (data) => {
     // console.log(`Ownership change: ${data.newOwner} in room ${data.room}`);

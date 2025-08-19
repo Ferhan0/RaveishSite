@@ -6,6 +6,8 @@
 let player;
 let lastTime = 0;
 let seekDetectionInterval;
+let typingTimer;
+let isTyping = false;
 
 // LocalStorage'dan veriyi oku
 const userNickname = localStorage.getItem('userNickname');
@@ -22,6 +24,12 @@ const chatMessages = document.querySelector('.chat-messages');
 const messageInput = document.querySelector('textarea');
 const sendButton = document.querySelector('.send-button');
 
+const chatInput = document.querySelector('.chat-input');
+const typingIndicator = document.getElementById('typing-indicator');
+const typingText = document.getElementById('typing-text');
+
+
+// Socket.io connection
 // Socket.io connection
 function initSocket() {
     socket = io();
@@ -72,7 +80,6 @@ function initSocket() {
     
     // Video sync listener
     socket.on('video_seek', (data) => {
-        // SADECE video seek kodu - başka socket.on yok!
         // console.log("📺 Received sync:", data.position);
         
         if (!isCurrentUserOwner() && player && player.getPlayerState) {
@@ -87,7 +94,41 @@ function initSocket() {
         }
     });
     
-    // OWNERSHIP LISTENERS'I BURAYA TAŞI:
+    socket.on('video_play', (data) => {
+        const received = Date.now();
+        const sent = data?.timestamp || 0;
+        const delay = received - sent;
+        // console.log('📺 Received play at:', received);
+        // console.log('⚡ Socket delay:', delay + 'ms');
+        
+        if (!isCurrentUserOwner() && player) {
+            // console.log('▶️ Calling player.playVideo() at:', Date.now());
+            player.playVideo();
+            
+            setTimeout(() => {
+                // console.log('📊 Player state after playVideo():', player.getPlayerState());
+            }, 100);
+        }
+    });
+    
+    socket.on('video_pause', () => {
+        // console.log('⏸️ Received pause command');
+        if (!isCurrentUserOwner() && player) {
+            player.pauseVideo();
+        }
+    });
+    
+    socket.on('users_update', (users) => {
+        // console.log('👥 Users update:', users);
+        updateRealUsersList(users);
+    });
+    
+    socket.on('chat_message', (data) => {
+        // console.log('💬 Received chat:', data);
+        displayMessage(data);
+    });
+    
+    // OWNERSHIP LISTENERS
     socket.on('ownership_update', (data) => {
         // console.log('👑 Ownership updated:', data.newOwner);
         let owners = JSON.parse(localStorage.getItem('room_owners') || '[]');
@@ -95,63 +136,37 @@ function initSocket() {
             owners.push(data.newOwner);
             localStorage.setItem('room_owners', JSON.stringify(owners));
         }
-         updatePlayerControls();
+        updatePlayerControls();
     });
     
     socket.on('ownership_removed', (data) => {
-    // console.log('👑 Ownership removed:', data.removedOwner);
-    let owners = JSON.parse(localStorage.getItem('room_owners') || '[]');
-    owners = owners.filter(owner => owner !== data.removedOwner);
-    localStorage.setItem('room_owners', JSON.stringify(owners));
-    
-    // SEEK DETECTION KONTROLÜ EKLE!
-    if (seekDetectionInterval) {
-        clearInterval(seekDetectionInterval);
-        seekDetectionInterval = null;
-        // console.log('🚫 Cleared seek detection after ownership removed');
-    }
-    
-    // Owner olmadığın için seek detection başlatma
-    if (!isCurrentUserOwner()) {
-        // console.log('🚫 Not starting seek detection - not owner');
-    }
-});
-    
-    socket.on('video_play', (data) => {
-        const received = Date.now();
-        const sent = data?.timestamp || 0;
-        const delay = received - sent;
+        // console.log('👑 Ownership removed:', data.removedOwner);
+        let owners = JSON.parse(localStorage.getItem('room_owners') || '[]');
+        owners = owners.filter(owner => owner !== data.removedOwner);
+        localStorage.setItem('room_owners', JSON.stringify(owners));
         
-        // console.log("▶️ Received play at:", received);
-        // console.log("⏱️ Socket delay:", delay + "ms");
+        // SEEK DETECTION KONTROLÜ EKLE!
+        if (seekDetectionInterval) {
+            clearInterval(seekDetectionInterval);
+            seekDetectionInterval = null;
+            // console.log('🚫 Cleared seek detection after ownership removed');
+        }
         
-        if (!isCurrentUserOwner() && player) {
-            // console.log("🎬 Calling player.playVideo() at:", Date.now());
-            player.playVideo();
-            
-            setTimeout(() => {
-                // console.log("🎬 Player state after playVideo():", player.getPlayerState());
-            }, 100);
+        // Owner olmadığın için seek detection başlatma
+        if (!isCurrentUserOwner()) {
+            // console.log('🚫 Not starting seek detection - not owner');
         }
     });
-
-    socket.on('video_pause', () => {
-        // console.log("⏸️ Received pause command");
-        if (!isCurrentUserOwner() && player) {
-            player.pauseVideo();
-        }
+    
+    // TYPING LISTENERS
+    socket.on('user_typing_start', (data) => {
+        console.log(`${data.user} started typing`);
+        showTypingIndicator(data.user);
     });
-
-    // Chat listener altına ekle
-    socket.on('chat_message', (data) => {
-        // console.log('📨 Received chat:', data);
-        displayMessage(data);
-    });
-
-    // YENİ EKLE - Users update listener
-    socket.on('users_update', (users) => {
-        // console.log('👥 Users update:', users);
-        updateRealUsersList(users);
+    
+    socket.on('user_typing_stop', (data) => {
+        console.log(`${data.user} stopped typing`);
+        hideTypingIndicator(data.user);
     });
 }
 
@@ -368,6 +383,47 @@ function displayMessage(data) {
     renderMessages();
     chatMessages.scrollTop = chatMessages.scrollHeight - chatMessages.clientHeight;
 }
+
+// Typing detection
+chatInput.addEventListener('input', function() {
+    
+    // İlk harf yazıldığında
+    if (!isTyping) {
+        isTyping = true;
+        // Server'a "typing started" gönder
+        socket.emit('user_typing_start', {
+            user: localStorage.getItem('userNickname'),
+            room: localStorage.getItem('roomId')
+        });
+    }
+    
+    // Önceki timer'ı temizle
+    clearTimeout(typingTimer);
+    
+    // 3 saniye sonra "stopped typing"
+    typingTimer = setTimeout(() => {
+        isTyping = false;
+        // Server'a "typing stopped" gönder
+        socket.emit('user_typing_stop', {
+            user: localStorage.getItem('userNickname'),
+            room: localStorage.getItem('roomId')
+        });
+    }, 3000);
+});
+
+// Typing indicator göster/gizle fonksiyonları
+    function showTypingIndicator(username) {
+        const typingText = document.getElementById('typing-text');
+        const typingIndicator = document.getElementById('typing-indicator');
+        
+        typingText.textContent = `${username} is typing...`;
+        typingIndicator.classList.add('show');
+    }
+
+    function hideTypingIndicator(username) {
+        const typingIndicator = document.getElementById('typing-indicator');
+        typingIndicator.classList.remove('show');
+    }
 
 // ============================================
 // 5. USERS MANAGEMENT
