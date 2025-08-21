@@ -57,6 +57,10 @@ function initSocket() {
                 // console.log('📤 Sent room data as creator');
             }
         }
+        
+        if (roomId) {
+            socket.emit('request_queue', { room: roomId });
+        }
     });
     
     // JOIN yapanlar room data alsın
@@ -181,6 +185,67 @@ function initSocket() {
         showUserLeft(data.user);
     });
 
+            // Queue sync listener - CURRENT VIDEO LOAD
+    socket.on('queue_sync', (data) => {
+    console.log('📥 Received queue sync:', data);
+    console.log('🔑 From owner:', data.fromOwner);
+    console.log('🎯 Trigger auto-start:', data.triggerAutoStart);
+    
+    // Server'dan gelen queue ile local'i sync et
+    videoQueue = data.queue || [];
+    currentVideoIndex = data.currentIndex || 0;
+    
+    // UI'yi güncelle
+    if (videoQueue.length > 0) {
+        emptyQueue.classList.add('hidden');
+        videoQueueContainer.classList.remove('hidden');
+        renderVideoQueue();
+        
+        // Sadece owner action'ında ve non-owner'larda auto-start
+        if (!isCurrentUserOwner() && data.fromOwner && data.triggerAutoStart) {
+            const currentVideo = videoQueue[currentVideoIndex];
+            if (currentVideo) {
+                playerCurrentVideoId = currentVideo.id;
+                
+                if (player && player.loadVideoById) {
+                    player.loadVideoById(currentVideo.id);
+                    setTimeout(() => {
+                        if (player && player.playVideo) {
+                            player.playVideo();
+                            console.log('🎬 Auto-started video from owner action');
+                        }
+                    }, 1000);
+                }
+            }
+        }
+    }
+});
+
+        // Video change listener - AUTO-PLAY EKLE
+    socket.on('queue_video_changed', (data) => {
+        console.log('🎬 Queue video changed:', data);
+        
+        // Sadece owner değilsen video'yu sync et
+        if (!isCurrentUserOwner()) {
+            currentVideoIndex = data.videoIndex;
+            playerCurrentVideoId = data.videoData.id;
+            
+            if (player && player.loadVideoById) {
+                player.loadVideoById(data.videoData.id);
+                
+                // YENİ: Auto-play ekle
+                setTimeout(() => {
+                    if (player && player.playVideo) {
+                        player.playVideo();
+                        console.log('▶️ Auto-started synced video');
+                    }
+                }, 1000);
+            }
+            
+            renderVideoQueue();
+        }
+    });
+
     
 }
 
@@ -291,7 +356,7 @@ function addVideoToQueue() {
     
     queueInput.value = '';
     renderVideoQueue();
-    syncQueueToServer();
+    syncQueueToServer(false);
     
     console.log('✅ Video added to queue:', videoObj);
     console.log('🎯 Queue length:', videoQueue.length);
@@ -371,7 +436,7 @@ function createQueueItemElement(video, index) {
     return item;
 }
 
-// Play video from queue
+// playVideoFromQueue'da server sync ekle
 function playVideoFromQueue(index) {
     console.log('🎯 Playing video at index:', index);
     console.log('Video title:', videoQueue[index]?.title);
@@ -384,7 +449,7 @@ function playVideoFromQueue(index) {
     currentVideoIndex = index;
     const video = videoQueue[index];
     
-    // YENİ: Player state'i güncelle
+    // Player state'i güncelle
     playerCurrentVideoId = video.id;
     
     // Load video in player
@@ -393,12 +458,24 @@ function playVideoFromQueue(index) {
     }
     
     localStorage.setItem('videoUrl', video.url);
+    
+    // YENİ: Server'a video change bildir
+    const roomId = localStorage.getItem('roomId');
+    socket.emit('queue_video_change', {
+        room: roomId,
+        videoIndex: index,
+        videoData: video
+    });
+    
     syncCurrentVideoToServer(video);
+    syncQueueToServer(true); // Owner video değiştirirse auto-start
+
     renderVideoQueue();
     
     console.log('🎬 Playing video from queue:', video);
     console.log('Updated playerCurrentVideoId:', playerCurrentVideoId);
 }
+
 // Manual video selection - AYRI FONKSİYON
 function selectVideoFromQueue(index) {
     if (!isCurrentUserOwner()) {
@@ -455,16 +532,18 @@ function removeFromQueue(index) {
     console.log('Queue length after:', videoQueue.length);
     
     renderVideoQueue();
-    syncQueueToServer();
+    syncQueueToServer(false);
 }
 
 // Sync queue to server
-function syncQueueToServer() {
+function syncQueueToServer(triggerAutoStart = false) {
     const roomId = localStorage.getItem('roomId');
     socket.emit('queue_update', {
         room: roomId,
         queue: videoQueue,
-        currentIndex: currentVideoIndex
+        currentIndex: currentVideoIndex,
+        fromOwner: isCurrentUserOwner(),
+        triggerAutoStart: triggerAutoStart
     });
 }
 
