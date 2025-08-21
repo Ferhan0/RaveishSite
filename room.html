@@ -44,7 +44,33 @@
                 <button class="send-button">Send</button>
             </div>
         </div>
+
     </main>
+
+     <div class="video-queue-container" id="video-queue-container">
+        <!-- İlk durum: Empty state -->
+        <div class="empty-queue" id="empty-queue">
+            <button class="add-first-video" id="add-first-video">
+                📝 Add to the list
+            </button>
+        </div>
+        
+        <!-- Liste var iken: Hidden başlangıçta -->
+        <div class="video-queue hidden" id="video-queue">
+            <div class="queue-header">
+                <span class="queue-title">📺 Video Queue</span>
+                <input 
+                    type="url" 
+                    class="queue-input" 
+                    id="queue-input"
+                    placeholder="Paste video URL and press Enter..."
+                />
+            </div>
+            <div class="queue-list" id="queue-list">
+                <!-- Video items dinamik olarak buraya eklenecek -->
+            </div>
+        </div>
+    </div>
 
    
     <ol class="contextMenu hidden" id="contextMenu">
