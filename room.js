@@ -8,6 +8,7 @@ let lastTime = 0;
 let seekDetectionInterval;
 let typingTimer;
 let isTyping = false;
+let playerCurrentVideoId = null; // Player'da oynayan video ID
 
 // LocalStorage'dan veriyi oku
 const userNickname = localStorage.getItem('userNickname');
@@ -183,6 +184,338 @@ function initSocket() {
     
 }
 
+
+// ============================================
+// VIDEO QUEUE FUNCTIONALITY
+// ============================================
+
+// Queue state management
+let videoQueue = [];
+let currentVideoIndex = 0;
+
+// DOM elements
+const emptyQueue = document.getElementById('empty-queue');
+const videoQueueContainer = document.getElementById('video-queue');
+const addFirstVideoBtn = document.getElementById('add-first-video');
+const queueInput = document.getElementById('queue-input');
+const queueList = document.getElementById('queue-list');
+
+// Initialize queue functionality
+function initVideoQueue() {
+    // Add first video button click
+    addFirstVideoBtn.addEventListener('click', showQueueInput);
+    
+    // Queue input enter key
+    queueInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addVideoToQueue();
+        }
+    });
+}
+
+// Show queue input (first video)
+function showQueueInput() {
+    emptyQueue.classList.add('hidden');
+    videoQueueContainer.classList.remove('hidden');
+    queueInput.focus();
+}
+
+// Video title fetch function
+async function fetchVideoTitle(videoId) {
+    try {
+        // YouTube oEmbed API kullan (API key gerektirmez)
+        const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+        const data = await response.json();
+        return data.title || 'Unknown Title';
+    } catch (error) {
+        console.log('Title fetch failed:', error);
+        return 'Video Title';
+    }
+}
+
+// Add video to queue - BACKGROUND ORIGINAL SYNC
+function addVideoToQueue() {
+    const videoUrl = queueInput.value.trim();
+    
+    if (!videoUrl) {
+        alert('Please enter a video URL');
+        return;
+    }
+    
+    const videoId = getYouTubeVideoId(videoUrl);
+    if (!videoId) {
+        alert('Please enter a valid YouTube URL');
+        return;
+    }
+    
+    // DUPLICATE CHECK
+    const isDuplicate = videoQueue.some(video => video.id === videoId);
+    if (isDuplicate) {
+        alert('This video is already in the queue!');
+        queueInput.value = '';
+        return;
+    }
+    
+    // İLK VIDEO EKLENİYORSA: Original'ı background'da ekle
+    if (videoQueue.length === 0) {
+        addOriginalVideoToBackground();
+    }
+    
+    // Create user's video object
+    const videoObj = {
+        id: videoId,
+        url: videoUrl,
+        title: 'Loading...',
+        duration: '',
+        thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+        addedBy: localStorage.getItem('userNickname'),
+        timestamp: Date.now()
+    };
+    
+    // Add user's video to queue
+    videoQueue.push(videoObj);
+
+    // Title'ı async fetch et
+    fetchVideoTitle(videoId).then(title => {
+        videoObj.title = title;
+        renderVideoQueue(); // UI'yi güncelle
+        console.log('📝 Title updated:', title);
+    });
+    
+    // Show queue UI (first time)
+    if (videoQueue.length === 2) { // Original + User's = 2
+        emptyQueue.classList.add('hidden');
+        videoQueueContainer.classList.remove('hidden');
+    }
+    
+    queueInput.value = '';
+    renderVideoQueue();
+    syncQueueToServer();
+    
+    console.log('✅ Video added to queue:', videoObj);
+    console.log('🎯 Queue length:', videoQueue.length);
+}
+
+// Background'da original video'yu ekle (görünmez)
+function addOriginalVideoToBackground() {
+    const originalVideoUrl = localStorage.getItem('videoUrl');
+    
+    if (originalVideoUrl) {
+        const videoId = getYouTubeVideoId(originalVideoUrl);
+        
+        if (videoId) {
+            const originalVideoObj = {
+                id: videoId,
+                url: originalVideoUrl,
+                title: 'Current Video', // Geçici title
+                duration: '',
+                thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+                addedBy: localStorage.getItem('userNickname'),
+                timestamp: Date.now()
+            };
+            
+            videoQueue.push(originalVideoObj);
+            currentVideoIndex = 0; // Original = index 0
+            
+            // Title'ı async fetch et
+            fetchVideoTitle(videoId).then(title => {
+                originalVideoObj.title = title;
+                renderVideoQueue(); // UI'yi güncelle
+                console.log('📝 Original video title updated:', title);
+            });
+            
+            console.log('🔇 Original video added to background (index 0)');
+        }
+    }
+}
+// Render video queue UI - FIXED
+function renderVideoQueue() {
+    queueList.innerHTML = '';
+    
+    videoQueue.forEach((video, index) => {
+        const queueItem = createQueueItemElement(video, index);
+        queueList.appendChild(queueItem);
+    });
+    
+    // CURRENT VIDEO CLASS'INI SADECE GÖRSEL OLARAK EKLE
+    // Player'ı etkileme!
+}
+
+// Create queue item element - ONCLICK EKLE
+function createQueueItemElement(video, index) {
+    const item = document.createElement('div');
+    item.className = 'queue-item';
+    item.setAttribute('data-index', index);
+    
+    // Mark current video
+    if (index === currentVideoIndex) {
+        item.classList.add('current');
+    }
+    
+    item.innerHTML = `
+        <div class="queue-thumbnail" onclick="selectVideoFromQueue(${index})">
+            <img src="${video.thumbnail}" alt="Video thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="placeholder" style="display: none;">🎬</div>
+        </div>
+        <div class="queue-info" onclick="selectVideoFromQueue(${index})">
+            <div class="queue-video-title">${video.title}</div>
+            <div class="queue-video-duration">${video.duration || 'Duration unknown'}</div>
+        </div>
+        <button class="queue-remove" onclick="removeFromQueue(${index})">&times;</button>
+    `;
+    
+    // Click event listener'ı KALDIR! (Bu satırı sil)
+    // item.addEventListener('click', () => playVideoFromQueue(index)); ← BU SATIRI SİL
+    
+    return item;
+}
+
+// Play video from queue
+function playVideoFromQueue(index) {
+    console.log('🎯 Playing video at index:', index);
+    console.log('Video title:', videoQueue[index]?.title);
+    
+    if (!isCurrentUserOwner()) {
+        alert('Only owners can change videos');
+        return;
+    }
+    
+    currentVideoIndex = index;
+    const video = videoQueue[index];
+    
+    // YENİ: Player state'i güncelle
+    playerCurrentVideoId = video.id;
+    
+    // Load video in player
+    if (player && player.loadVideoById) {
+        player.loadVideoById(video.id);
+    }
+    
+    localStorage.setItem('videoUrl', video.url);
+    syncCurrentVideoToServer(video);
+    renderVideoQueue();
+    
+    console.log('🎬 Playing video from queue:', video);
+    console.log('Updated playerCurrentVideoId:', playerCurrentVideoId);
+}
+// Manual video selection - AYRI FONKSİYON
+function selectVideoFromQueue(index) {
+    if (!isCurrentUserOwner()) {
+        alert('Only owners can change videos');
+        return;
+    }
+    
+    console.log('👆 Manual video selection:', index);
+    playVideoFromQueue(index);
+}
+
+// Remove video from queue - CURRENT VIDEO SADECE QUEUE'DAN SIL
+function removeFromQueue(index) {
+    if (!isCurrentUserOwner()) {
+        alert('Only owners can remove videos');
+        return;
+    }
+    
+    console.log('🔍 Before remove:');
+    console.log('Removing index:', index);
+    console.log('Current index before:', currentVideoIndex);
+    console.log('Queue length before:', videoQueue.length);
+    
+    videoQueue.splice(index, 1);
+    
+    if (index < currentVideoIndex) {
+        currentVideoIndex--;
+        console.log('📉 Decreased current index to:', currentVideoIndex);
+    } else if (index === currentVideoIndex) {
+        console.log('🎯 Current video removed from queue');
+        
+        // Index boundary check
+        if (currentVideoIndex >= videoQueue.length) {
+            currentVideoIndex = videoQueue.length - 1;
+            console.log('📐 Adjusted index to:', currentVideoIndex);
+        }
+        
+        // Queue boşsa empty state'e dön
+        if (videoQueue.length === 0) {
+            emptyQueue.classList.remove('hidden');
+            videoQueueContainer.classList.add('hidden');
+            console.log('📭 Queue is empty');
+            return;
+        }
+        
+        // YENİ: Player'ı DOKUNMA! Sadece index ayarla
+        // Player kendi videosunu oynamaya devam etsin
+        // Video bitince handleVideoEnd() doğru next video'ya geçecek
+        console.log('▶️ Player continues current video, queue updated');
+    }
+    
+    console.log('🔍 After remove:');
+    console.log('Current index after:', currentVideoIndex);
+    console.log('Queue length after:', videoQueue.length);
+    
+    renderVideoQueue();
+    syncQueueToServer();
+}
+
+// Sync queue to server
+function syncQueueToServer() {
+    const roomId = localStorage.getItem('roomId');
+    socket.emit('queue_update', {
+        room: roomId,
+        queue: videoQueue,
+        currentIndex: currentVideoIndex
+    });
+}
+
+// Sync current video to server
+function syncCurrentVideoToServer(video) {
+    const roomId = localStorage.getItem('roomId');
+    const nickname = localStorage.getItem('userNickname');
+    
+    socket.emit('set_room_data', {
+        roomId: roomId,
+        videoUrl: video.url,
+        owner: nickname
+    });
+}
+
+// Auto-play next video when current ends - INDEX VALIDATION
+function handleVideoEnd() {
+    console.log('🎬 Video ended');
+    console.log('Player current video ID:', playerCurrentVideoId);
+    
+    if (!isCurrentUserOwner() || videoQueue.length === 0) return;
+    
+    // Player'da oynayan video'nun queue'daki index'ini bul
+    const currentQueueIndex = videoQueue.findIndex(video => video.id === playerCurrentVideoId);
+    console.log('Current video queue index:', currentQueueIndex);
+    
+    if (currentQueueIndex === -1) {
+        // Current video queue'da yok (silinmiş), ilk video'dan başla
+        console.log('🔄 Current video not in queue, starting from first');
+        if (videoQueue.length > 0) {
+            playVideoFromQueue(0);
+        }
+        return;
+    }
+    
+    // Normal flow: next video'ya geç
+    const nextIndex = currentQueueIndex + 1;
+    console.log('Next video index will be:', nextIndex);
+    
+    if (nextIndex < videoQueue.length) {
+        console.log('🔄 Auto-playing:', videoQueue[nextIndex].title);
+        playVideoFromQueue(nextIndex);
+    } else {
+        console.log('📝 End of queue reached');
+        // Loop back to beginning
+        if (videoQueue.length > 0) {
+            playVideoFromQueue(0);
+        }
+    }
+}
+
 // Socket'i başlat
 initSocket();
 
@@ -303,6 +636,9 @@ function onPlayerStateChange(event) {
             // console.log("⏸️ Owner: Sending pause event");
             socket.emit('video_pause', { room: roomId });
         }
+    }
+    if (event.data === YT.PlayerState.ENDED) {
+        handleVideoEnd();  // ← Auto-play next video
     }
     
 }
@@ -743,3 +1079,4 @@ sendButton.addEventListener('click', addMessage);
 updateRoomDisplay();
 renderMessages();
 initUsersDropdown();
+initVideoQueue();
