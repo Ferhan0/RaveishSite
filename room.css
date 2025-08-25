@@ -603,3 +603,32 @@ main {
 .hidden {
     display: none !important;
 }
+
+/* Smooth transitions */
+.queue-item, .message, .toast, .users-list {
+    transition: all 0.3s ease;
+}
+
+/* Optimize animations for mobile */
+@media (max-width: 768px) {
+    * {
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+}
+
+/* Loading animation */
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Connection status pulse */
+.users-list div[style*="opacity: 0.5"] {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.3; }
+}

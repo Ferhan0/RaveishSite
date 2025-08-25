@@ -33,12 +33,14 @@ const typingText = document.getElementById('typing-text');
 // Socket.io connection
 // Socket.io connection
 function initSocket() {
+
     socket = io();
     
     socket.on('connect', () => {
         // console.log('🔌 Connected to server!');
         
         // Room'a katıl
+        
         const roomId = localStorage.getItem('roomId');
         const nickname = localStorage.getItem('userNickname');
         
@@ -62,6 +64,8 @@ function initSocket() {
             socket.emit('request_queue', { room: roomId });
         }
     });
+
+    
     
     // JOIN yapanlar room data alsın
     socket.on('room_data', (data) => {
@@ -219,6 +223,9 @@ function initSocket() {
             }
         }
     }
+
+    
+
 });
 
         // Video change listener - AUTO-PLAY EKLE
@@ -245,7 +252,7 @@ function initSocket() {
             renderVideoQueue();
         }
     });
-
+    
     
 }
 
@@ -676,6 +683,7 @@ function onYouTubeIframeAPIReady() {
     }
 }
 
+
 // Player hazır olduğunda
 function onPlayerReady(event) {
     // console.log('Player is ready');
@@ -706,6 +714,7 @@ function onPlayerStateChange(event) {
     
     // console.log("🔑 Is owner:", isOwner);
     
+    
     if (isOwner) {
         if (event.data === YT.PlayerState.PLAYING) {
             const timestamp = Date.now();  // ← BURAYA EKLE
@@ -720,6 +729,7 @@ function onPlayerStateChange(event) {
         handleVideoEnd();  // ← Auto-play next video
     }
     
+
 }
 
 function startSeekDetection() {
@@ -938,7 +948,8 @@ function updateUsersList() {
     usersToggle.textContent = `👥 ${activeUsers.length} users online`;
 }
 
-// Real-time users list update
+
+// Real-time users list update - textContent yerine innerHTML
 function updateRealUsersList(users) {
     const usersList = document.getElementById('users-list');
     const usersToggle = document.getElementById('users-toggle');
@@ -951,10 +962,25 @@ function updateRealUsersList(users) {
         const userDiv = document.createElement('div');
         const isOwner = isUserOwner(user.nickname);
         const crown = isOwner ? '👑 ' : '';
-        userDiv.textContent = `${crown}${user.nickname}${isOwner ? ' (owner)' : ''}`;
         
-        // Context menu (sadece owner yapabilir) - BU EKSİKTİ!
-        if (isCurrentUserOwner() && user.nickname !== localStorage.getItem('userNickname')) {
+        // Status dot
+        const statusDot = getStatusDot(user.status);
+        
+        // DEĞIŞIKLIK: textContent yerine innerHTML kullan
+        userDiv.innerHTML = `${statusDot} ${crown}${user.nickname}${isOwner ? ' (owner)' : ''}`;
+        
+        // Visual styling based on status
+        if (user.status === 'offline') {
+            userDiv.style.opacity = '0.5';
+            userDiv.style.fontStyle = 'italic';
+        } else {
+            // Reset styles for online users
+            userDiv.style.opacity = '1';
+            userDiv.style.fontStyle = 'normal';
+        }
+        
+        // Context menu (sadece owner yapabilir ve online user'lar için)
+        if (isCurrentUserOwner() && user.nickname !== localStorage.getItem('userNickname') && user.status === 'online') {
             userDiv.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
                 showContextMenu(e, user.nickname);
@@ -964,8 +990,19 @@ function updateRealUsersList(users) {
         usersList.appendChild(userDiv);
     });
 
-    // Update button text
-    usersToggle.textContent = `👥 ${users.length} users online`;
+    // Update button text with online count
+    const onlineCount = users.filter(user => user.status === 'online').length;
+    const totalCount = users.length;
+    usersToggle.textContent = `👥 ${onlineCount}/${totalCount} users online`;
+}
+
+function getStatusDot(status) {
+    switch(status) {
+        case 'online': return '🟢';
+        case 'offline': return '🔴';
+        case 'reconnecting': return '🟡';
+        default: return '⚪';
+    }
 }
 
 function showContextMenu(event, username) {
@@ -1075,6 +1112,7 @@ function initUsersDropdown() {
     });
 }
 
+
 // ============================================
 // 6. UI UPDATES
 // ============================================
@@ -1153,7 +1191,7 @@ sendButton.addEventListener('click', addMessage);
 // 8. INITIALIZATION
 // ============================================
 
-// Sayfa yüklendiğinde
+
 
 updateRoomDisplay();
 renderMessages();

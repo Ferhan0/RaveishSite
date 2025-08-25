@@ -24,11 +24,35 @@ const roomData = {}; // { roomId: { videoUrl, owner } }
 const roomUsers = {}; // { roomId: [users...] }
 const roomQueues = {}; // { roomId: { queue: [...], currentIndex: 0 } }
 
-io.on('connection', (socket) => {
-    // console.log('User connected:', socket.id);
+const offlineCleanupInterval = setInterval(cleanupOfflineUsers, 30000); // 30 saniye check
+
+function cleanupOfflineUsers() {
+    const OFFLINE_TIMEOUT = 3 * 60 * 1000; // 3 minutes
+    const now = Date.now();
     
-    // Room'a katılım - GÜNCELLE
-// Room'a katılım - GÜNCELLE
+    for (const roomId in roomUsers) {
+        const beforeCount = roomUsers[roomId].length;
+        
+        // 5 dakikadan fazla offline olanları sil
+        roomUsers[roomId] = roomUsers[roomId].filter(user => {
+            if (user.status === 'offline' && (now - user.lastSeen) > OFFLINE_TIMEOUT) {
+                console.log(`🧹 Removed ${user.nickname} from room ${roomId} (offline timeout)`);
+                return false; // Remove user
+            }
+            return true; // Keep user
+        });
+        
+        // Eğer user silindiyse broadcast yap
+        if (roomUsers[roomId].length !== beforeCount) {
+            io.to(roomId).emit('users_update', roomUsers[roomId]);
+            console.log(`📡 Updated user list for room ${roomId} after cleanup`);
+        }
+    }
+}
+
+
+io.on('connection', (socket) => {
+    
 socket.on('join_room', (data) => {
     const { roomId, nickname } = data;
     socket.join(roomId);
@@ -38,16 +62,34 @@ socket.on('join_room', (data) => {
         roomUsers[roomId] = [];
     }
     
-    // User'ı ekle (duplicate check)
+    // YENİ: Reconnection ve new user check
     const existingUser = roomUsers[roomId].find(user => user.nickname === nickname);
-    if (!existingUser) {
+    
+    if (existingUser) {
+        // Mevcut user var - reconnection mı yoksa duplicate mı?
+        if (existingUser.status === 'offline') {
+            // Reconnection case
+            existingUser.socketId = socket.id;
+            existingUser.status = 'online';
+            existingUser.lastSeen = Date.now();
+            console.log(`${nickname} reconnected to room: ${roomId}`);
+            
+            // Reconnection için join notification YOK
+        } else {
+            // Already online - duplicate connection (ignore or handle)
+            console.log(`${nickname} already online in room: ${roomId}`);
+        }
+    } else {
+        // Completely new user
         roomUsers[roomId].push({
             nickname: nickname,
             socketId: socket.id,
-            joinedAt: Date.now()
+            joinedAt: Date.now(),
+            status: 'online',        
+            lastSeen: Date.now()
         });
         
-        // YENİ: Join notification gönder (sadece diğer kullanıcılara)
+        // Join notification sadece yeni user'lar için
         socket.to(roomId).emit('user_joined', {
             user: nickname,
             room: roomId
@@ -63,6 +105,14 @@ socket.on('join_room', (data) => {
     if (roomData[roomId]) {
         socket.emit('room_data', roomData[roomId]);
         console.log(`Sent room data to ${nickname}`);
+    }
+    
+    // Queue data varsa gönder
+    if (roomQueues[roomId]) {
+        socket.emit('queue_sync', {
+            queue: roomQueues[roomId].queue,
+            currentIndex: roomQueues[roomId].currentIndex
+        });
     }
     
     console.log('Room users:', roomUsers[roomId]);
@@ -146,32 +196,33 @@ socket.on('join_room', (data) => {
     
         // YENİ: Disconnect handling
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+    console.log('User disconnected:', socket.id);
+    
+    // Tüm room'lardan bu socket'i bul ve OFFLINE yap (silme!)
+    for (const roomId in roomUsers) {
+        const userIndex = roomUsers[roomId].findIndex(user => user.socketId === socket.id);
         
-        // Tüm room'lardan bu socket'i bul ve sil
-        for (const roomId in roomUsers) {
-            const userIndex = roomUsers[roomId].findIndex(user => user.socketId === socket.id);
+        if (userIndex !== -1) {
+            const user = roomUsers[roomId][userIndex];
             
-            if (userIndex !== -1) {
-                const leftUser = roomUsers[roomId][userIndex];
-                
-                // User'ı listeden sil
-                roomUsers[roomId].splice(userIndex, 1);
-                
-                // Leave notification gönder
-                socket.to(roomId).emit('user_left', {
-                    user: leftUser.nickname,
-                    room: roomId
-                });
-                
-                // Updated user list gönder
-                io.to(roomId).emit('users_update', roomUsers[roomId]);
-                
-                console.log(`${leftUser.nickname} left room: ${roomId}`);
-                break;
-            }
+            // User'ı listeden SILME! Sadece offline yap
+            user.status = 'offline';
+            user.lastSeen = Date.now();
+            user.socketId = null; // Socket connection clear
+            console.log(`🔍 DEBUG: ${user.nickname} status set to:`, user.status); // ← EKLE
+            console.log('🔍 DEBUG: Updated user object:', user); // ← EKLE
+            
+            // Leave notification YOK - offline notification
+            console.log(`${user.nickname} went offline in room: ${roomId}`);
+            
+            // Updated user list gönder (offline status ile)
+            io.to(roomId).emit('users_update', roomUsers[roomId]);
+            
+            break;
         }
-    });
+    }
+    
+});
 
     socket.on('queue_update', (data) => {
     const { room, queue, currentIndex, fromOwner, triggerAutoStart } = data;
@@ -231,6 +282,13 @@ socket.on('join_room', (data) => {
         
         console.log(`🎬 Video changed in room ${room} to index ${videoIndex}`);
     });
+});
+
+// Server kapatılırken cleanup timer'ı temizle
+process.on('SIGINT', () => {
+    clearInterval(offlineCleanupInterval);
+    console.log('🛑 Cleanup timer cleared, server shutting down');
+    process.exit(0);
 });
 
 const PORT = process.env.PORT || 3000;
