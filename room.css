@@ -1,34 +1,66 @@
-body {
+/* ==============================================
+   GLOBAL RESET & BASE STYLES
+   ============================================== */
+
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* ← Entegre edildi */
+}
+
+body {
     background: #2c2f33;
     color: #ffffffbb;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
- header {
-    background: #2c2f33;
-    padding: 20px;
-    margin: 0;
-    border-bottom: 1px solid #444;
-}
-h1 {
-    font-size: 2em;
-    margin: 0;
-    color: #ffffff;
-    flex: 2;                      /* ← Ekle - Video container ile aynı oran */
+    overflow-x: hidden; /* ← Entegre edildi */
 }
 
+/* ==============================================
+   HEADER SECTION
+   ============================================== */
+
+header {
+    background: #2c2f33;
+    padding: 20px;
+    border-bottom: 1px solid #444;
+}
 
 .header-content {
     display: flex;
     align-items: center;
-    justify-content: flex-start;  /* ← Değiştir */
-    gap: 750px;                    /* ← Ekle - h1 ve h2 arası boşluk */
+    justify-content: flex-start;
+    gap: 20px; /* ← 750px'den 20px'e düşürüldü */
 }
 
+h1 {
+    font-size: 2em;
+    color: #ffffff;
+    flex: 1; /* ← Responsive genişlik */
+}
 
+/* ==============================================
+   MAIN LAYOUT
+   ============================================== */
+
+main {
+    height: calc(100vh - 150px);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; /* ← space-around'dan değiştirildi */
+    align-items: stretch;
+    gap: 15px;
+    max-width: 100vw; /* ← Entegre edildi */
+    padding: 0 20px; /* ← Entegre edildi */
+}
+
+/* ==============================================
+   VIDEO CONTAINER
+   ============================================== */
 
 .video-container {
-    flex: 2 0 60%;    /* ← Bu satırı değiştir */
+    flex: 1 1 60%;
+    min-width: 0; /* ← Flexbox shrinking için */
+    max-width: calc(100vw - 400px); /* ← Chat panel için yer bırak */
     aspect-ratio: 16/9;
     position: relative;
 }
@@ -45,7 +77,7 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255,0,0,0.05); /* Debug için hafif kırmızı */
+    background: rgba(255,0,0,0.05);
     z-index: 999;
     cursor: not-allowed !important;
     pointer-events: all;
@@ -53,43 +85,49 @@ h1 {
     -webkit-user-select: none;
 }
 
+/* ==============================================
+   CHAT PANEL
+   ============================================== */
+
 .chat-panel {
-    flex: 0 0 350px;
-    max-width: 350px;        /* ← Ekle */
-    min-width: 300px;        /* ← Ekle */  
+    flex: 0 0 350px; /* ← Sabit genişlik */
+    width: 350px; /* ← Explicit width */
+    max-width: 350px;
+    min-width: 300px;
     display: flex;
     flex-direction: column;
     justify-content: end;
-    border: 2px solid;
-    overflow: hidden;        /* ← Ekle - Taşmayı engelle */
+    border: 2px solid #444;
+    overflow: hidden;
 }
 
-
-.send-button{
-    align-self: center;
-    height: 40px;
-    width: 150px;
-    border-radius: 25px;
-    margin-bottom: 5px;
-}
 .chat-messages {
     flex-grow: 1;
     overflow-y: auto;
     padding: 10px;
     background-color: #36393f;
     border-radius: 5px;
-    width: 100%;             /* ← Ekle */
-    max-width: 100%;         /* ← Ekle */
-    box-sizing: border-box;  /* ← Ekle */
+    width: 100%;
+    max-width: 100%;
 }
- 
+
 .message {
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    word-break: break-all;   /* ← Ekle - Zorla böl */
+    word-break: break-word; /* ← Zorla kelime kırma */
     max-width: 100%;
-    hyphens: auto;           /* ← Ekle - Tire ile böl */
+    hyphens: auto;
+    margin-bottom: 5px;
+}
+
+.chat-input-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    width: 100%;
+    max-width: 100%;
 }
 
 .chat-input {
@@ -97,7 +135,8 @@ h1 {
     min-height: 40px;
     max-height: 120px;
     overflow-y: auto;
-    width: 100%;      /* ← Bu satırı değiştir */
+    width: 100%;
+    max-width: 100%; /* ← Maximum width sınırla */
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -105,30 +144,33 @@ h1 {
     color: #ffffff;
     margin: 0 10px 10px 5px;
 }
-.chat-input-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    align-content: space-between;
-    margin-top: 10px;
+
+.send-button {
+    align-self: center;
+    height: 40px;
+    width: 150px;
+    border-radius: 25px;
+    margin-bottom: 5px;
 }
 
+/* ==============================================
+   TYPING INDICATOR
+   ============================================== */
+
 .typing-indicator {
-    background-color: rgba(54, 57, 63, 0.7); /* Silik background */
+    background-color: rgba(54, 57, 63, 0.7);
     padding: 8px 15px;
     margin: 5px 10px;
     border-radius: 15px;
     font-size: 0.9em;
     color: #ffffffbb;
     font-style: italic;
-    opacity: 0; /* Başlangıçta görünmez */
+    opacity: 0;
     transform: translateY(10px);
-    transition: all 0.3s ease; /* Smooth animation */
+    transition: all 0.3s ease;
     min-height: 20px;
     display: flex;
     align-items: center;
-
-    
 }
 
 .typing-indicator.show {
@@ -153,10 +195,10 @@ h1 {
     80%, 100% { content: "..."; }
 }
 
+/* ==============================================
+   USERS DROPDOWN
+   ============================================== */
 
-
-
-/* Users Dropdown Styling */
 .users-dropdown {
     position: relative;
     background-color: #2c2f33;
@@ -191,8 +233,6 @@ h1 {
     max-height: 200px;
     overflow-y: auto;
     z-index: 1000;
-    
-    /*  Smooth animation için */
     opacity: 1;
     transform: translateY(0);
     transition: all 0.3s ease;
@@ -202,7 +242,6 @@ h1 {
     opacity: 0;
     transform: translateY(-10px);
     pointer-events: none;
-    
 }
 
 .users-list div {
@@ -220,170 +259,20 @@ h1 {
     background-color: #2c2f33;
 }
 
-/* Toast Container - Fixed Position */
-.toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none; /* Arkadaki elementlere tıklama geçmesi için */
-}
+/* ==============================================
+   VIDEO QUEUE SECTION
+   ============================================== */
 
-/* Toast Base Styling */
-.toast {
-    background: #36393f;
-    color: #ffffff;
-    padding: 12px 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    min-width: 200px;
-    max-width: 300px;
-    position: relative;
-    overflow: hidden;
-    
-    /* Entry animation - başlangıçta sağda gizli */
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-}
-
-/* Toast göster */
-.toast.show {
-    transform: translateX(0);
-}
-
-/* Success (Join) */
-.toast.success {
-    border-left: 4px solid #4CAF50; /* Yeşil */
-}
-
-/* Error (Leave) */
-.toast.error {
-    border-left: 4px solid #f44336; /* Kırmızı */
-}
-
-/* Progress Bar */
-.toast-progress {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.3);
-    width: 0%;
-    transition: width 3s linear; /* 3 saniye progress */
-}
-
-/* Success progress */
-.toast.success .toast-progress {
-    background: #4CAF50;
-}
-
-/* Error progress */
-.toast.error .toast-progress {
-    background: #f44336;
-}
-
-main {
-   
-    height: calc(100vh - 150px);  
-    gap: 15px;  
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: stretch;
-    
-}
-
-.contextMenu {
-    position: absolute;
-    list-style: none;
-    margin: 0;
-    padding: 10px;
-    background: #fff;
-    border: 1px solid #ccc;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    border-radius: 6px;
-    min-width: 160px;
-    font-size: 1em;
-    color: #222;
-}
-.contextMenu li {
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.contextMenu li:hover {
-    background: #f0f0f0;
-}
-.contextMenu.hidden {
-    display: none !important;
-}
-
-@media (max-width: 768px) {
-    .header-content {
-        gap: 20px;
-        justify-content: flex-start;  
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    /* Header text mobile */
-    h1 {
-        font-size: 1.2em;
-        text-align: center;
-        width: 100%;
-    }
-    
-    main { 
-        flex-direction: column;
-        height: calc(100vh - 100px);
-        padding: 10px; /* + Padding ekle */
-        gap: 10px;     /* + Gap ekle */
-    }
-    
-    /* Video container mobile */
-    .video-container {
-        height: 35vh;     /* + Biraz küçült */
-        min-height: 200px; /* + Min height */
-    }
-    
-    .chat-panel {
-        flex: none;
-        height: 40vh;
-        max-width: 100%;
-        min-height: 250px; /* + Min height ekle */
-    }
-    
-    /* Touch-friendly controls */
-    .chat-input {
-        font-size: 16px;  /* + iOS zoom önleme */
-        min-height: 44px; /* + Touch target */
-    }
-    
-    .send-button {
-        min-height: 44px; /* + Touch target */
-        width: 80px;      /* + Daha kompakt */
-    }
-    
-    .users-toggle {
-        font-size: 1em;   /* + Daha okunabilir */
-        padding: 12px;    /* + Touch padding */
-    }
-}
-
-/* Video Queue Container */
 .video-queue-container {
     width: 100%;
+    max-width: 100vw; /* ← Viewport sınırı */
     background: #2c2f33;
     border-top: 1px solid #444;
     padding: 15px 20px;
     margin-top: 10px;
+    overflow-x: auto; /* ← Horizontal scroll izin ver */
 }
 
-/* Empty State */
 .empty-queue {
     display: flex;
     justify-content: center;
@@ -410,7 +299,6 @@ main {
     background: linear-gradient(135deg, #5865f2, #4752c4);
 }
 
-/* Video Queue (Liste var iken) */
 .video-queue {
     width: 100%;
 }
@@ -421,6 +309,8 @@ main {
     align-items: center;
     margin-bottom: 15px;
     padding: 0 10px;
+    flex-wrap: wrap; /* ← Responsive wrap */
+    gap: 10px;
 }
 
 .queue-title {
@@ -430,7 +320,8 @@ main {
 }
 
 .queue-input {
-    width: 300px;
+    width: 100%;
+    max-width: 400px; /* ← Responsive genişlik */
     padding: 8px 12px;
     border: 2px solid #444;
     border-radius: 6px;
@@ -449,15 +340,15 @@ main {
     color: #72767d;
 }
 
-/* Queue List - Horizontal Scroll */
 .queue-list {
     display: flex;
-    flex-wrap: wrap; /* ← WRAP EKLE */
+    flex-wrap: wrap;
     gap: 15px;
     padding: 10px 0;
-    max-height: 400px; /* ← MAX HEIGHT EKLE */
-    overflow-y: auto; /* ← VERTICAL SCROLL */
-    justify-content: flex-start; /* ← SOL HIZALAMA */
+    max-height: 300px; /* ← Optimized height */
+    overflow-y: auto;
+    justify-content: flex-start;
+    width: 100%;
 }
 
 .queue-list::-webkit-scrollbar {
@@ -478,10 +369,10 @@ main {
     background: #555;
 }
 
-/* Video Item */
 .queue-item {
-    min-width: 200px; /* ← 280'den 200'e */
+    min-width: 180px; /* ← Optimized size */
     max-width: 200px;
+    flex: 1 1 200px; /* ← Responsive flex */
     background: #36393f;
     border-radius: 8px;
     overflow: hidden;
@@ -501,10 +392,9 @@ main {
     box-shadow: 0 0 15px rgba(114, 137, 218, 0.5);
 }
 
-/* Video Thumbnail */
 .queue-thumbnail {
     width: 100%;
-    height: 120px; /* ← 150'den 120'ye */
+    height: 120px;
     background: #40444b;
     display: flex;
     align-items: center;
@@ -524,7 +414,6 @@ main {
     color: #72767d;
 }
 
-/* Video Info */
 .queue-info {
     padding: 12px;
 }
@@ -547,7 +436,6 @@ main {
     color: #72767d;
 }
 
-/* Remove Button */
 .queue-remove {
     position: absolute;
     top: 8px;
@@ -573,57 +461,119 @@ main {
     background: #f04747;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-    .video-queue-container {
-        padding: 10px 15px;
-    }
-    
-    .queue-header {
-        flex-direction: column;
-        gap: 10px;
-        align-items: stretch;
-    }
-    
-    .queue-input {
-        width: 100%;
-    }
-    
-    .queue-item {
-        min-width: 220px;
-        max-width: 220px;
-    }
-    
-    .queue-thumbnail {
-        height: 120px;
-    }
+/* ==============================================
+   TOAST NOTIFICATIONS
+   ============================================== */
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
 }
 
-/* Hidden utility class */
+.toast {
+    background: #36393f;
+    color: #ffffff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+    max-width: 300px;
+    position: relative;
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast.success {
+    border-left: 4px solid #4CAF50;
+}
+
+.toast.error {
+    border-left: 4px solid #f44336;
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    width: 0%;
+    transition: width 3s linear;
+}
+
+.toast.success .toast-progress {
+    background: #4CAF50;
+}
+
+.toast.error .toast-progress {
+    background: #f44336;
+}
+
+/* ==============================================
+   CONTEXT MENU
+   ============================================== */
+
+.contextMenu {
+    position: absolute;
+    list-style: none;
+    margin: 0;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    border-radius: 6px;
+    min-width: 160px;
+    font-size: 1em;
+    color: #222;
+}
+
+.contextMenu li {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.contextMenu li:hover {
+    background: #f0f0f0;
+}
+
+.contextMenu.hidden {
+    display: none !important;
+}
+
+/* ==============================================
+   UTILITY CLASSES
+   ============================================== */
+
 .hidden {
     display: none !important;
 }
 
-/* Smooth transitions */
+/* ==============================================
+   ANIMATIONS
+   ============================================== */
+
 .queue-item, .message, .toast, .users-list {
     transition: all 0.3s ease;
 }
 
-/* Optimize animations for mobile */
-@media (max-width: 768px) {
-    * {
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-    }
-}
-
-/* Loading animation */
 @keyframes slideIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
 
-/* Connection status pulse */
 .users-list div[style*="opacity: 0.5"] {
     animation: pulse 2s infinite;
 }
@@ -631,4 +581,92 @@ main {
 @keyframes pulse {
     0%, 100% { opacity: 0.5; }
     50% { opacity: 0.3; }
+}
+
+/* ==============================================
+   MOBILE RESPONSIVE
+   ============================================== */
+
+@media (max-width: 768px) {
+    .header-content {
+        gap: 20px;
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: center; /* ← Ortalanmış */
+    }
+    
+    h1 {
+        font-size: 1.5em; /* ← Daha okunabilir */
+        text-align: center;
+        width: 100%;
+    }
+    
+    main {
+        flex-direction: column;
+        height: calc(100vh - 100px);
+        padding: 10px;
+        gap: 10px;
+        max-width: 100vw;
+    }
+    
+    .video-container {
+        height: 35vh;
+        min-height: 200px;
+        max-width: 100%;
+        flex: none;
+    }
+    
+    .chat-panel {
+        flex: none;
+        height: 40vh;
+        max-width: 100%;
+        min-height: 250px;
+        width: 100%;
+    }
+    
+    .video-queue-container {
+        padding: 10px;
+        margin-top: 5px;
+    }
+    
+    .queue-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .queue-input {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .queue-list {
+        max-height: 200px;
+    }
+    
+    .queue-item {
+        min-width: 160px;
+        max-width: 180px;
+    }
+    
+    /* Touch-friendly controls */
+    .chat-input {
+        font-size: 16px;
+        min-height: 44px;
+    }
+    
+    .send-button {
+        min-height: 44px;
+        width: 80px;
+    }
+    
+    .users-toggle {
+        font-size: 1em;
+        padding: 12px;
+    }
+    
+    /* Mobile optimization */
+    * {
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
 }
