@@ -5,14 +5,14 @@
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box; /* ← Entegre edildi */
+    box-sizing: border-box;
 }
 
 body {
     background: #2c2f33;
     color: #ffffffbb;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow-x: hidden; /* ← Entegre edildi */
+    overflow-x: hidden;
 }
 
 /* ==============================================
@@ -29,13 +29,13 @@ header {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 20px; /* ← 750px'den 20px'e düşürüldü */
+    gap: 20px;
 }
 
 h1 {
     font-size: 2em;
     color: #ffffff;
-    flex: 1; /* ← Responsive genişlik */
+    flex: 1;
 }
 
 /* ==============================================
@@ -46,11 +46,11 @@ main {
     height: calc(100vh - 150px);
     display: flex;
     flex-direction: row;
-    justify-content: space-between; /* ← space-around'dan değiştirildi */
+    justify-content: space-between;
     align-items: stretch;
     gap: 15px;
-    max-width: 100vw; /* ← Entegre edildi */
-    padding: 0 20px; /* ← Entegre edildi */
+    max-width: 100vw;
+    padding: 0 20px;
 }
 
 /* ==============================================
@@ -59,8 +59,8 @@ main {
 
 .video-container {
     flex: 1 1 60%;
-    min-width: 0; /* ← Flexbox shrinking için */
-    max-width: calc(100vw - 400px); /* ← Chat panel için yer bırak */
+    min-width: 0;
+    max-width: calc(100vw - 400px);
     aspect-ratio: 16/9;
     position: relative;
 }
@@ -77,7 +77,7 @@ main {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255,0,0,0.05);
+    background: transparent;
     z-index: 999;
     cursor: not-allowed !important;
     pointer-events: all;
@@ -90,8 +90,8 @@ main {
    ============================================== */
 
 .chat-panel {
-    flex: 0 0 350px; /* ← Sabit genişlik */
-    width: 350px; /* ← Explicit width */
+    flex: 0 0 350px;
+    width: 350px;
     max-width: 350px;
     min-width: 300px;
     display: flex;
@@ -108,14 +108,13 @@ main {
     background-color: #36393f;
     border-radius: 5px;
     width: 100%;
-    max-width: 100%;
 }
 
 .message {
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    word-break: break-word; /* ← Zorla kelime kırma */
+    word-break: break-word;
     max-width: 100%;
     hyphens: auto;
     margin-bottom: 5px;
@@ -127,7 +126,6 @@ main {
     align-items: center;
     margin-top: 10px;
     width: 100%;
-    max-width: 100%;
 }
 
 .chat-input {
@@ -136,7 +134,6 @@ main {
     max-height: 120px;
     overflow-y: auto;
     width: 100%;
-    max-width: 100%; /* ← Maximum width sınırla */
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -265,12 +262,12 @@ main {
 
 .video-queue-container {
     width: 100%;
-    max-width: 100vw; /* ← Viewport sınırı */
+    max-width: 100vw;
     background: #2c2f33;
     border-top: 1px solid #444;
     padding: 15px 20px;
     margin-top: 10px;
-    overflow-x: auto; /* ← Horizontal scroll izin ver */
+    overflow-x: auto;
 }
 
 .empty-queue {
@@ -309,7 +306,7 @@ main {
     align-items: center;
     margin-bottom: 15px;
     padding: 0 10px;
-    flex-wrap: wrap; /* ← Responsive wrap */
+    flex-wrap: wrap;
     gap: 10px;
 }
 
@@ -321,7 +318,7 @@ main {
 
 .queue-input {
     width: 100%;
-    max-width: 400px; /* ← Responsive genişlik */
+    max-width: 400px;
     padding: 8px 12px;
     border: 2px solid #444;
     border-radius: 6px;
@@ -345,7 +342,7 @@ main {
     flex-wrap: wrap;
     gap: 15px;
     padding: 10px 0;
-    max-height: 300px; /* ← Optimized height */
+    max-height: 300px;
     overflow-y: auto;
     justify-content: flex-start;
     width: 100%;
@@ -370,9 +367,9 @@ main {
 }
 
 .queue-item {
-    min-width: 180px; /* ← Optimized size */
+    min-width: 180px;
     max-width: 200px;
-    flex: 1 1 200px; /* ← Responsive flex */
+    flex: 1 1 200px;
     background: #36393f;
     border-radius: 8px;
     overflow: hidden;
@@ -592,11 +589,11 @@ main {
         gap: 20px;
         justify-content: flex-start;
         flex-direction: column;
-        align-items: center; /* ← Ortalanmış */
+        align-items: center;
     }
     
     h1 {
-        font-size: 1.5em; /* ← Daha okunabilir */
+        font-size: 1.5em;
         text-align: center;
         width: 100%;
     }
@@ -648,7 +645,6 @@ main {
         max-width: 180px;
     }
     
-    /* Touch-friendly controls */
     .chat-input {
         font-size: 16px;
         min-height: 44px;
@@ -664,9 +660,17 @@ main {
         padding: 12px;
     }
     
-    /* Mobile optimization */
     * {
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
     }
+}
+
+/* Queue responsive improvements */
+.queue-list {
+    flex-wrap: wrap;
+}
+
+.queue-header {
+    flex-wrap: wrap;
 }
