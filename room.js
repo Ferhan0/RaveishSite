@@ -1197,3 +1197,5 @@ updateRoomDisplay();
 renderMessages();
 initUsersDropdown();
 initVideoQueue();
+
+// Çoğu son değişiklikler bug ile doluydu :(
