@@ -37,37 +37,36 @@ function initSocket() {
     socket = io();
     
     socket.on('connect', () => {
-         console.log('🔌 Connected to server!');
+    console.log('🔌 Connected to server!');
+    
+    const roomId = localStorage.getItem('roomId');
+    const nickname = localStorage.getItem('userNickname');
+    
+    if (roomId && nickname) {
+        socket.emit('join_room', { roomId, nickname });
         
-        // Room'a katıl
+        // SADECE room creator'lar owner olsun
+        const isCreator = localStorage.getItem('isRoomCreator') === 'true';
+        const videoUrl = localStorage.getItem('videoUrl');
         
-        const roomId = localStorage.getItem('roomId');
-        const nickname = localStorage.getItem('userNickname');
-        
-        if (roomId && nickname) {
-            socket.emit('join_room', { roomId, nickname });
+        if (isCreator && videoUrl) {
+            const roomOwners = [nickname];
+            localStorage.setItem('room_owners', JSON.stringify(roomOwners));
             
-            // CREATE yapanlar room data göndersin VE OWNER OLSUN
-            const videoUrl = localStorage.getItem('videoUrl');
-            if (videoUrl) {
-                // Room creator'ı owner yap
-                const roomOwners = [nickname];
-                localStorage.setItem('room_owners', JSON.stringify(roomOwners));
-                
-                const roomData = {
-                    roomId: roomId,
-                    videoUrl: videoUrl,
-                    owner: nickname
-                };
-                socket.emit('set_room_data', roomData);
-                // console.log('📤 Sent room data as creator');
-            }
+            const roomData = {
+                roomId: roomId,
+                videoUrl: videoUrl,
+                owner: nickname
+            };
+            socket.emit('set_room_data', roomData);
+            console.log('📤 Sent room data as creator');
         }
-        
-        if (roomId) {
-            socket.emit('request_queue', { room: roomId });
-        }
-    });
+    }
+    
+    if (roomId) {
+        socket.emit('request_queue', { room: roomId });
+    }
+});
 
     
     
