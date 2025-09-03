@@ -432,8 +432,7 @@ function createQueueItemElement(video, index) {
         <button class="queue-remove" onclick="removeFromQueue(${index})">&times;</button>
     `;
     
-    // Click event listener'ı KALDIR! (Bu satırı sil)
-    // item.addEventListener('click', () => playVideoFromQueue(index)); ← BU SATIRI SİL
+    
     
     return item;
 }
